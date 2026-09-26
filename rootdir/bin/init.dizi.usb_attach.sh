@@ -4,9 +4,10 @@
 udc=/sys/class/udc/a600000.dwc3/state
 mode=/sys/devices/platform/soc/a600000.ssusb/mode
 
-sleep 5
-if [ "$(cat $udc)" != configured ]; then
+for i in 1 2 3 4 5 6; do
+    sleep 10
+    [ "$(cat $udc)" = configured ] && exit 0
     echo none > $mode
     sleep 2
     echo peripheral > $mode
-fi
+done

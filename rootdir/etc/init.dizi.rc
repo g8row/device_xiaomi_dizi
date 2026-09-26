@@ -65,5 +65,7 @@ service vendor.usb_attach /vendor/bin/init.dizi.usb_attach.sh
     disabled
     seclabel u:r:vendor_qti_init_shell:s0
 
-on property:sys.boot_completed=1 && property:ro.debuggable=1
+# Start as soon as adbd runs, not at boot_completed: a boot that hangs
+# earlier is exactly when USB adb is needed.
+on property:init.svc.adbd=running && property:ro.debuggable=1
     start vendor.usb_attach
