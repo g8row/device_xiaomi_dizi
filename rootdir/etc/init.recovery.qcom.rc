@@ -45,3 +45,16 @@ on fs
 
 on property:dev.mnt.blk.firmware=*
     write /sys/kernel/boot_adsp/boot 1
+
+# dizi: the dwc3 controller can miss the cable attach after boot and stay
+# "not attached" (see init.dizi.usb_attach.sh). Re-run the attach once the
+# gadget is up; init has no sleep, so wait on a path that never appears.
+on property:sys.usb.state=fastboot
+    write /sys/devices/platform/soc/a600000.ssusb/mode none
+    wait /dev/.dizi-usb-settle 2
+    write /sys/devices/platform/soc/a600000.ssusb/mode peripheral
+
+on property:sys.usb.state=adb
+    write /sys/devices/platform/soc/a600000.ssusb/mode none
+    wait /dev/.dizi-usb-settle 2
+    write /sys/devices/platform/soc/a600000.ssusb/mode peripheral
