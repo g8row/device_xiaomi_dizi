@@ -138,6 +138,21 @@ blob_fixups: blob_fixups_user_type = {
         .clear_symbol_version('AHardwareBuffer_lockPlanes')
         .clear_symbol_version('AHardwareBuffer_release')
         .clear_symbol_version('AHardwareBuffer_unlock'),
+    (
+        'vendor/lib64/libcalculator.so',
+        'vendor/lib64/libcalculator_htp.so'
+    ): blob_fixup()
+        .fix_soname(),
+    (
+        'vendor/lib64/libmorpho_Ldc.so',
+        'vendor/lib64/libmorpho_ubwc.so'
+    ): blob_fixup()
+        .clear_symbol_version('AHardwareBuffer_acquire')
+        .clear_symbol_version('AHardwareBuffer_describe')
+        .clear_symbol_version('AHardwareBuffer_lockPlanes')
+        .clear_symbol_version('AHardwareBuffer_unlock'),
+    'vendor/lib64/libmorpho_video_stabilizer.so': blob_fixup()
+        .add_needed('libutils.so'),
     'vendor/lib64/libcamximageformatutils.so': blob_fixup()
         .replace_needed(
             'vendor.qti.hardware.display.config-V2-ndk_platform.so',
