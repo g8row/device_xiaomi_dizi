@@ -1,83 +1,13 @@
-on early-boot
-    chown system graphics /sys/bus/platform/devices/soc:xiaomi_fingerprint/fingerdown
-    chmod 0664 /sys/bus/platform/devices/soc:xiaomi_fingerprint/fingerdown
-
 on boot
-    chmod 0666 /dev/goodix_fp
-    chown system system /dev/goodix_fp
-    chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/irq
-    chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/irq_enable
-    chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/wakeup_enable
-    chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/hw_reset
-    chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/device_prepare
-    chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/fingerdown_wait
-    chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/vendor
-    chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/request_vreg
-    chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/simulate_irq
-    chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/finger_irq
-    chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/power_cfg
-    chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/power_ctrl
-    chown system system /sys/bus/platform/devices/soc:fingerprint_fpc/screen
-    chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/irq
-    chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/wakeup_enable
-    chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/hw_reset
-    chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/device_prepare
-    chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/vendor
-    chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/request_vreg
-    chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/simulate_irq
-    chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/finger_irq
-    chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/power_cfg
-    chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/power_ctrl
-    chmod 0700 /sys/bus/platform/devices/soc:fingerprint_fpc/screen
-    chmod 0666 /dev/input/event2
-
-on post-fs-data
-    mkdir /data/vendor/misc 01771 system system
-    mkdir /data/vendor/misc/mi_fp 0770 system system
-    mkdir /persist/mi_fp 0770 system system
-    mkdir /mnt/vendor/persist/mi_fp 0770 system system
-    mkdir /data/vendor/fpc 0770 system system
-    mkdir /data/vendor/fpdump 0770 system system
-    mkdir /data/vendor/goodix 0770 system system
-    mkdir /data/vendor/fingerprint 0770 system system
-    mkdir /mnt/vendor/persist/goodix 0770 system system
-    mkdir /mnt/vendor/persist/fpc 0770 system system
-
-service vendor.nfc_hal_service /vendor/bin/hw/android.hardware.nfc-service.nxp
-    class early_hal
-    user nfc
-    group nfc drmrpc system
-    override
-    disabled
-
-service secureelement-hal_1_2 /vendor/bin/hw/vendor.qti.secure_element@1.2-service
-    class early_hal
-    user system
-    group system
-    override
-    disabled
-
-service qti_esepowermanager_service_1_1 /vendor/bin/hw/vendor.qti.esepowermanager@1.1-service
-    class early_hal
-    user system
-    group nfc system
-    override
-    disabled
-
-on property:ro.boot.product.hardware.sku=CN
-    enable vendor.nfc_hal_service
-    enable secureelement-hal_1_2
-    enable qti_esepowermanager_service_1_1
-
-on property:ro.boot.product.hardware.sku=GL
-    enable vendor.nfc_hal_service
-    enable secureelement-hal_1_2
-    enable qti_esepowermanager_service_1_1
-
-on property:ro.boot.product.hardware.sku=JP
-    enable vendor.nfc_hal_service
-    enable secureelement-hal_1_2
-    enable qti_esepowermanager_service_1_1
+    # Touchscreen / stylus (NT36532 + xiaomi_touch)
+    chown system system /dev/xiaomi-touch
+    chmod 0660 /dev/xiaomi-touch
+    chown system system /dev/mipp_pen0
+    chmod 0660 /dev/mipp_pen0
+    chown system system /sys/class/touch/touch_dev/palm_sensor
+    chmod 0664 /sys/class/touch/touch_dev/palm_sensor
+    chown system system /sys/class/touch/touch_dev/pen_connect_strategy
+    chmod 0664 /sys/class/touch/touch_dev/pen_connect_strategy
 
 on property:sys.boot_completed=1
     write /sys/devices/virtual/thermal/thermal_message/sconfig 20
@@ -107,7 +37,6 @@ service vendor.audio-hal /vendor/bin/hw/android.hardware.audio.service
     ioprio rt 4
     task_profiles ProcessCapacityHigh HighPerformance
     onrestart restart audioserver
-    socket audio_us_socket_0 seqpacket 0666 system system
 
 service vendor.sensors-hal-multihal /vendor/bin/hw/android.hardware.sensors-service.xiaomi-multihal
     override
@@ -115,6 +44,5 @@ service vendor.sensors-hal-multihal /vendor/bin/hw/android.hardware.sensors-serv
     user system
     group system wakelock context_hub input uhid
     writepid /dev/cpuset/system-background/tasks
-    socket audio_us_socket_1 seqpacket 0666 system system
     capabilities BLOCK_SUSPEND
     rlimit rtprio 10 10
