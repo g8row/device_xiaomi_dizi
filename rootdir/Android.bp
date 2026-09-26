@@ -52,3 +52,9 @@ prebuilt_etc {
     sub_dir: "init",
     vendor: true,
 }
+
+sh_binary {
+    name: "init.dizi.usb_attach.sh",
+    src: "bin/init.dizi.usb_attach.sh",
+    vendor: true,
+}

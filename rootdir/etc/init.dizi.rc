@@ -55,3 +55,15 @@ on boot
 
 on property:vendor.pen.state=*
     exec_background u:r:xiaomi_pen:s0 system system -- /vendor/bin/xiaomi-pen ${vendor.pen.state}
+
+# Bring-up: recover USB when the controller misses the attach at boot.
+service vendor.usb_attach /vendor/bin/init.dizi.usb_attach.sh
+    class late_start
+    user root
+    group root
+    oneshot
+    disabled
+    seclabel u:r:vendor_qti_init_shell:s0
+
+on property:sys.boot_completed=1 && property:ro.debuggable=1
+    start vendor.usb_attach
