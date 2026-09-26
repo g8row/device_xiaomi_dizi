@@ -47,8 +47,8 @@ prebuilt_etc {
 }
 
 prebuilt_etc {
-    name: "init.garnet.rc",
-    src: "etc/init.garnet.rc",
+    name: "init.dizi.rc",
+    src: "etc/init.dizi.rc",
     sub_dir: "init",
     vendor: true,
 }

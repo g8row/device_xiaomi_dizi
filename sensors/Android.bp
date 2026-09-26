@@ -5,7 +5,7 @@
 //
 
 cc_library_headers {
-    name: "xiaomi_garnet_sensor_notifier_headers",
+    name: "xiaomi_dizi_sensor_notifier_headers",
     export_include_dirs: ["include"],
     vendor: true,
 }
@@ -33,6 +33,6 @@ cc_binary {
 
     header_libs: [
         "generated_kernel_headers",
-        "xiaomi_garnet_sensor_notifier_headers",
+        "xiaomi_dizi_sensor_notifier_headers",
     ],
 }
