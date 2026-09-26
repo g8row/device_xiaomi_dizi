@@ -16,8 +16,11 @@ from pathlib import Path
 
 BLOB_PARTS = ('vendor', 'odm', 'system', 'system_ext', 'product')
 
-# Garnet sections that make no sense on the Wi-Fi-only tablet.
-SKIP_SECTIONS = ('RIL', 'EMBMS', 'IMS', 'Fingerprint', 'NFC', 'Secure element', 'ESE powermanager')
+# Garnet sections that make no sense on the Wi-Fi-only tablet. Note that
+# garnet's 'RIL' section also carries platform daemons dizi needs (pd-mapper,
+# rmt_storage, tftp_server, qti, ...), so only its modem/IMS daemons go.
+SKIP_SECTIONS = ('EMBMS', 'IMS', 'Fingerprint', 'NFC', 'Secure element', 'ESE powermanager')
+SKIP_ENTRIES = re.compile(r'(qcrilNrd|imsdaemon|ims_rtp_daemon|ATFWD-daemon)(\.rc)?$')
 
 # Globs (relative to the dump) for dizi-specific groups.
 EXTRA: dict[str, list[str]] = {
@@ -117,6 +120,8 @@ def main() -> None:
         prefix = entry[:len(entry) - len(body)]
         spec, _, flags = body.partition(';')
         src, _, dst = spec.partition(':')
+        if SKIP_ENTRIES.search(src):
+            continue
         if not exists(dump_path(src)):
             # Pinned blob imported from another device: use dizi's own copy.
             if dst and exists(dump_path(dst)):
