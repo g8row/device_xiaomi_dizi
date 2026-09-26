@@ -38,3 +38,5 @@ ro.vendor.oem.sno u:object_r:vendor_sno_prop:s0
 
 # Thermal
 vendor.sys.thermal.data.path u:object_r:vendor_thermal_normal_prop:s0
+vendor.pen.state u:object_r:vendor_pen_prop:s0 exact string
+persist.vendor.pen.force u:object_r:vendor_pen_prop:s0 exact bool

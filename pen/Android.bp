@@ -1,0 +1,22 @@
+//
+// SPDX-FileCopyrightText: The LineageOS Project
+// SPDX-License-Identifier: Apache-2.0
+//
+
+android_app {
+    name: "DiziPen",
+    certificate: "platform",
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    platform_apis: true,
+    privileged: true,
+    system_ext_specific: true,
+    required: ["xiaomi-pen"],
+}
+
+cc_binary {
+    name: "xiaomi-pen",
+    vendor: true,
+    srcs: ["xiaomi-pen.cpp"],
+    shared_libs: ["libbase"],
+}

@@ -19,3 +19,4 @@ vendor_public_prop(vendor_sno_prop)
 
 # Thermal
 vendor_public_prop(vendor_thermal_normal_prop)
+system_public_prop(vendor_pen_prop)

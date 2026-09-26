@@ -46,3 +46,12 @@ service vendor.sensors-hal-multihal /vendor/bin/hw/android.hardware.sensors-serv
     writepid /dev/cpuset/system-background/tasks
     capabilities BLOCK_SUSPEND
     rlimit rtprio 10 10
+
+# Redmi Smart Pen: DiziPen reports Bluetooth pen transitions via
+# vendor.pen.state; xiaomi-pen forwards them to the touch IC. Reset the
+# driver's connect counter on every boot so it cannot drift.
+on boot
+    exec_background u:r:xiaomi_pen:s0 system system -- /vendor/bin/xiaomi-pen reset
+
+on property:vendor.pen.state=*
+    exec_background u:r:xiaomi_pen:s0 system system -- /vendor/bin/xiaomi-pen ${vendor.pen.state}
