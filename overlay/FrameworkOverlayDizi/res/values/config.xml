@@ -4,31 +4,17 @@
      SPDX-License-Identifier: Apache-2.0
 -->
 <resources>
-    <!-- Enables or disables haptic effect when the text insertion/selection handle is moved
-         manually by the user. Off by default, since the expected haptic feedback may not be
-         available on some devices. -->
-    <bool name="config_enableHapticTextHandle">true</bool>
 
-    <!-- This string array should be overridden by the device to present a list of radio
-         attributes.  This is used by the connectivity manager to decide which networks can coexist
-         based on the hardware -->
-    <!-- An Array of "[ConnectivityManager connectionType],
-                      [# simultaneous connection types]"  -->
-    <string-array name="radioAttributes" translatable="false">
-        <item>1,1</item>
-        <item>0,1</item>
-        <item>7,1</item>
-    </string-array>
 
     <!-- Flag indicating whether we should enable the automatic brightness.
          Software implementation will be used if config_hardware_auto_brightness_available is not set -->
     <bool name="config_automatic_brightness_available">true</bool>
 
     <!-- Fast brightness animation ramp rate in brightness units per second-->
-    <integer name="config_brightness_ramp_rate_fast">4932</integer>
+    <integer name="config_brightness_ramp_rate_fast">2466</integer>
 
     <!-- Slow brightness animation ramp rate in brightness units per second-->
-    <integer name="config_brightness_ramp_rate_slow">3946</integer>
+    <integer name="config_brightness_ramp_rate_slow">1973</integer>
 
     <!-- If this is true, the screen will come on when you unplug usb/power/whatever. -->
     <bool name="config_unplugTurnsOnScreen">true</bool>
@@ -62,7 +48,7 @@
          -2 is invalid so setting will resort to int value specified above.
          Set this to 0.0 to allow screen to go to minimal brightness.
          The user is forbidden from setting the brightness below this level. -->
-    <item name="config_screenBrightnessSettingMinimumFloat" type="dimen" format="float">8.54597E-4</item>
+    <item name="config_screenBrightnessSettingMinimumFloat" type="dimen" format="float">0.00170982</item>
 
     <!-- Maximum screen brightness allowed by the power manager.
          -2 is invalid so setting will resort to int value specified above.
@@ -73,7 +59,7 @@
     <!-- Default screen brightness setting set.
          -2 is invalid so setting will resort to int value specified above.
          Must be in the range specified by minimum and maximum. -->
-    <item name="config_screenBrightnessSettingDefaultFloat" type="dimen" format="float">0.07496032</item>
+    <item name="config_screenBrightnessSettingDefaultFloat" type="dimen" format="float">0.0747435</item>
 
     <!-- Screen brightness used to dim the screen while dozing in a very low power state.
          May be less than the minimum allowed brightness setting
@@ -96,7 +82,7 @@
          timeout expires.  May be less than the minimum allowed brightness setting
          that can be set by the user. -->
     <integer name="config_screenBrightnessDim">15</integer>
-    <item name="config_screenBrightnessDimFloat" type="dimen" format="float">8.54597E-4</item>
+    <item name="config_screenBrightnessDimFloat" type="dimen" format="float">0.00170982</item>
 
     <!-- Array of light sensor lux values to define our levels for auto backlight brightness support.
          The N entries of this array define N + 1 control points as follows:
@@ -121,33 +107,13 @@
     <integer-array name="config_autoBrightnessLevels">
         <item>1</item>
         <item>2</item>
-        <item>3</item>
         <item>4</item>
-        <item>5</item>
         <item>6</item>
-        <item>7</item>
         <item>8</item>
-        <item>9</item>
         <item>10</item>
-        <item>11</item>
-        <item>12</item>
-        <item>13</item>
-        <item>14</item>
         <item>15</item>
-        <item>16</item>
-        <item>17</item>
-        <item>18</item>
-        <item>19</item>
         <item>20</item>
-        <item>21</item>
-        <item>22</item>
-        <item>23</item>
-        <item>24</item>
         <item>25</item>
-        <item>26</item>
-        <item>27</item>
-        <item>28</item>
-        <item>29</item>
         <item>30</item>
         <item>35</item>
         <item>40</item>
@@ -183,7 +149,6 @@
         <item>460</item>
         <item>480</item>
         <item>500</item>
-        <item>600</item>
         <item>700</item>
         <item>900</item>
         <item>1100</item>
@@ -255,135 +220,114 @@
          The brightness values must be between 0 and 255 and be non-decreasing.
          This must be overridden in platform specific overlays -->
     <integer-array name="config_autoBrightnessLcdBacklightValues">
+        <item>21</item>
         <item>40</item>
-        <item>108</item>
-        <item>177</item>
-        <item>246</item>
-        <item>314</item>
-        <item>383</item>
-        <item>452</item>
-        <item>488</item>
-        <item>509</item>
-        <item>533</item>
-        <item>557</item>
-        <item>583</item>
-        <item>610</item>
-        <item>639</item>
-        <item>669</item>
-        <item>700</item>
-        <item>733</item>
-        <item>768</item>
-        <item>804</item>
-        <item>841</item>
-        <item>890</item>
-        <item>920</item>
-        <item>962</item>
-        <item>1005</item>
-        <item>1062</item>
-        <item>1095</item>
-        <item>1143</item>
-        <item>1192</item>
-        <item>1237</item>
-        <item>1294</item>
-        <item>1347</item>
-        <item>1355</item>
-        <item>1362</item>
-        <item>1370</item>
-        <item>1377</item>
-        <item>1384</item>
-        <item>1391</item>
-        <item>1399</item>
-        <item>1406</item>
-        <item>1414</item>
-        <item>1421</item>
-        <item>1428</item>
-        <item>1435</item>
-        <item>1442</item>
-        <item>1449</item>
-        <item>1473</item>
-        <item>1497</item>
-        <item>1521</item>
-        <item>1546</item>
-        <item>1569</item>
-        <item>1593</item>
-        <item>1617</item>
-        <item>1640</item>
-        <item>1664</item>
-        <item>1688</item>
-        <item>1712</item>
-        <item>1736</item>
+        <item>77</item>
+        <item>111</item>
+        <item>133</item>
+        <item>175</item>
+        <item>245</item>
+        <item>302</item>
+        <item>322</item>
+        <item>358</item>
+        <item>382</item>
+        <item>404</item>
+        <item>406</item>
+        <item>407</item>
+        <item>408</item>
+        <item>409</item>
+        <item>412</item>
+        <item>414</item>
+        <item>416</item>
+        <item>417</item>
+        <item>419</item>
+        <item>420</item>
+        <item>423</item>
+        <item>426</item>
+        <item>428</item>
+        <item>432</item>
+        <item>442</item>
+        <item>449</item>
+        <item>456</item>
+        <item>458</item>
+        <item>466</item>
+        <item>472</item>
+        <item>479</item>
+        <item>486</item>
+        <item>494</item>
+        <item>500</item>
+        <item>507</item>
+        <item>516</item>
+        <item>522</item>
+        <item>530</item>
+        <item>536</item>
+        <item>545</item>
+        <item>550</item>
+        <item>559</item>
+        <item>565</item>
+        <item>674</item>
+        <item>783</item>
+        <item>905</item>
+        <item>1028</item>
+        <item>1152</item>
+        <item>1284</item>
+        <item>1418</item>
+        <item>1600</item>
         <item>1760</item>
-        <item>1784</item>
-        <item>1809</item>
-        <item>1832</item>
-        <item>1855</item>
-        <item>1880</item>
-        <item>1905</item>
-        <item>1929</item>
-        <item>2053</item>
-        <item>2212</item>
-        <item>2529</item>
-        <item>2861</item>
-        <item>3213</item>
-        <item>3572</item>
-        <item>3940</item>
-        <item>4314</item>
-        <item>4504</item>
-        <item>5488</item>
-        <item>6516</item>
-        <item>6823</item>
-        <item>7096</item>
-        <item>7370</item>
-        <item>7644</item>
-        <item>7917</item>
-        <item>8191</item>
-        <item>8396</item>
-        <item>8601</item>
-        <item>8805</item>
-        <item>9010</item>
-        <item>9215</item>
-        <item>9420</item>
-        <item>9625</item>
-        <item>9829</item>
-        <item>10034</item>
-        <item>10239</item>
-        <item>10444</item>
-        <item>10649</item>
-        <item>10853</item>
-        <item>11058</item>
-        <item>11263</item>
-        <item>11468</item>
-        <item>11775</item>
-        <item>12082</item>
-        <item>12389</item>
-        <item>12697</item>
-        <item>13004</item>
-        <item>13311</item>
-        <item>13721</item>
-        <item>13754</item>
-        <item>13787</item>
-        <item>13821</item>
-        <item>13854</item>
-        <item>13888</item>
-        <item>13920</item>
-        <item>13954</item>
-        <item>13987</item>
-        <item>14021</item>
-        <item>14053</item>
-        <item>14220</item>
-        <item>14386</item>
-        <item>14553</item>
-        <item>14719</item>
-        <item>14886</item>
-        <item>15052</item>
-        <item>15219</item>
-        <item>15385</item>
-        <item>15552</item>
-        <item>15717</item>
-        <item>15884</item>
-        <item>16050</item>
-        <item>16217</item>
-        <item>16383</item>
+        <item>1900</item>
+        <item>2000</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
+        <item>2047</item>
     </integer-array>
 
     <!-- Array of desired screen brightness in nits corresponding to the lux values
@@ -399,135 +343,114 @@
          array. The brightness values must be non-negative and non-decreasing. This must be
          overridden in platform specific overlays -->
     <array name="config_autoBrightnessDisplayValuesNits">
-        <item>3.5</item>
-        <item>7.68</item>
-        <item>11.87</item>
-        <item>16.05</item>
-        <item>20.23</item>
-        <item>24.42</item>
-        <item>28.6</item>
-        <item>30.84</item>
-        <item>32.07</item>
-        <item>33.54</item>
-        <item>35.01</item>
-        <item>36.59</item>
-        <item>38.24</item>
-        <item>39.99</item>
-        <item>41.82</item>
-        <item>43.74</item>
-        <item>45.75</item>
-        <item>47.85</item>
-        <item>50.04</item>
-        <item>52.31</item>
-        <item>55.27</item>
-        <item>57.12</item>
-        <item>59.66</item>
-        <item>62.28</item>
-        <item>65.78</item>
-        <item>67.8</item>
-        <item>70.69</item>
-        <item>73.67</item>
-        <item>76.73</item>
-        <item>79.89</item>
-        <item>83.13</item>
-        <item>83.59</item>
-        <item>84.04</item>
-        <item>84.51</item>
-        <item>84.95</item>
-        <item>85.4</item>
-        <item>85.84</item>
-        <item>86.28</item>
-        <item>86.73</item>
-        <item>87.19</item>
-        <item>87.62</item>
-        <item>88.05</item>
-        <item>88.49</item>
-        <item>88.92</item>
-        <item>89.36</item>
-        <item>90.81</item>
-        <item>92.27</item>
-        <item>93.72</item>
-        <item>95.25</item>
-        <item>96.63</item>
-        <item>98.09</item>
-        <item>99.55</item>
-        <item>101.0</item>
-        <item>102.46</item>
-        <item>103.91</item>
-        <item>105.37</item>
-        <item>106.82</item>
-        <item>108.28</item>
-        <item>109.74</item>
-        <item>111.26</item>
-        <item>112.65</item>
-        <item>114.1</item>
-        <item>115.58</item>
-        <item>117.09</item>
-        <item>118.6</item>
-        <item>126.14</item>
-        <item>135.8</item>
-        <item>155.12</item>
-        <item>175.34</item>
-        <item>196.77</item>
-        <item>218.67</item>
-        <item>241.05</item>
-        <item>263.84</item>
-        <item>275.4</item>
-        <item>335.38</item>
-        <item>397.98</item>
-        <item>415.69</item>
-        <item>433.39</item>
-        <item>451.1</item>
-        <item>468.81</item>
-        <item>486.51</item>
-        <item>504.22</item>
-        <item>521.93</item>
-        <item>539.63</item>
-        <item>557.34</item>
-        <item>575.04</item>
-        <item>592.75</item>
-        <item>610.46</item>
-        <item>628.16</item>
-        <item>645.87</item>
-        <item>663.58</item>
-        <item>681.28</item>
-        <item>698.99</item>
-        <item>716.7</item>
-        <item>734.4</item>
-        <item>752.11</item>
-        <item>769.82</item>
-        <item>787.52</item>
-        <item>805.23</item>
-        <item>822.94</item>
-        <item>858.35</item>
-        <item>893.76</item>
-        <item>929.17</item>
-        <item>964.59</item>
-        <item>1000.0</item>
-        <item>1002.5</item>
-        <item>1005.0</item>
-        <item>1007.5</item>
-        <item>1010.0</item>
-        <item>1012.5</item>
-        <item>1015.0</item>
-        <item>1017.5</item>
-        <item>1020.0</item>
-        <item>1022.5</item>
-        <item>1025.0</item>
-        <item>1037.5</item>
-        <item>1050.0</item>
-        <item>1062.5</item>
-        <item>1075.0</item>
-        <item>1087.5</item>
-        <item>1100.0</item>
-        <item>1112.5</item>
-        <item>1125.0</item>
-        <item>1137.5</item>
-        <item>1150.0</item>
-        <item>1162.5</item>
-        <item>1175.0</item>
-        <item>1187.5</item>
-        <item>1200.0</item>
+        <item>4.1</item>
+        <item>5</item>
+        <item>6.8</item>
+        <item>15.8</item>
+        <item>22.1</item>
+        <item>28.4</item>
+        <item>37.8</item>
+        <item>54.6</item>
+        <item>74.6</item>
+        <item>91.4</item>
+        <item>101.9</item>
+        <item>102.9</item>
+        <item>102.9</item>
+        <item>102.9</item>
+        <item>104</item>
+        <item>104</item>
+        <item>105</item>
+        <item>105</item>
+        <item>105</item>
+        <item>106.1</item>
+        <item>106.1</item>
+        <item>107.1</item>
+        <item>108.2</item>
+        <item>108.2</item>
+        <item>108.2</item>
+        <item>111.3</item>
+        <item>113.4</item>
+        <item>115.5</item>
+        <item>117.6</item>
+        <item>119.7</item>
+        <item>121.8</item>
+        <item>123.9</item>
+        <item>125</item>
+        <item>128.1</item>
+        <item>129.2</item>
+        <item>131.3</item>
+        <item>134.4</item>
+        <item>136.5</item>
+        <item>137.6</item>
+        <item>140.7</item>
+        <item>142.8</item>
+        <item>143.9</item>
+        <item>147</item>
+        <item>149.1</item>
+        <item>151.2</item>
+        <item>177.5</item>
+        <item>205.8</item>
+        <item>233.1</item>
+        <item>260.4</item>
+        <item>283.5</item>
+        <item>315</item>
+        <item>336</item>
+        <item>351.8</item>
+        <item>420</item>
+        <item>437.5</item>
+        <item>455</item>
+        <item>472.5</item>
+        <item>490</item>
+        <item>500</item>
+        <item>505</item>
+        <item>513</item>
+        <item>525</item>
+        <item>538</item>
+        <item>550</item>
+        <item>563</item>
+        <item>575</item>
+        <item>588</item>
+        <item>600</item>
+        <item>610</item>
+        <item>620</item>
+        <item>630</item>
+        <item>640</item>
+        <item>650</item>
+        <item>660</item>
+        <item>670</item>
+        <item>680</item>
+        <item>690</item>
+        <item>700</item>
+        <item>708</item>
+        <item>710</item>
+        <item>715</item>
+        <item>720</item>
+        <item>725</item>
+        <item>730</item>
+        <item>735</item>
+        <item>740</item>
+        <item>745</item>
+        <item>750</item>
+        <item>755</item>
+        <item>760</item>
+        <item>765</item>
+        <item>770</item>
+        <item>775</item>
+        <item>800</item>
+        <item>817</item>
+        <item>833</item>
+        <item>850</item>
+        <item>867</item>
+        <item>883</item>
+        <item>900</item>
+        <item>913</item>
+        <item>925</item>
+        <item>938</item>
+        <item>950</item>
+        <item>963</item>
+        <item>975</item>
+        <item>988</item>
+        <item>1000</item>
     </array>
 
     <!-- Array of ambient lux threshold values. This is used for determining hysteresis constraint
@@ -559,7 +482,7 @@
          description for how the constraint value is chosen. -->
     <integer-array name="config_ambientBrighteningThresholds">
         <item>2</item>
-        <item>6</item>
+        <item>5</item>
         <item>10</item>
         <item>30</item>
         <item>100</item>
@@ -624,9 +547,6 @@
         <item>0</item>
     </integer-array>
 
-    <!-- Boolean indicating if restoring network selection should be skipped -->
-    <!-- The restoring is handled by modem if it is true-->
-    <bool name="skip_restoring_network_selection">true</bool>
 
     <!-- Whether a software navigation bar should be shown. NOTE: in the future this may be
          autodetected from the Configuration. -->
@@ -647,26 +567,11 @@
          turned off and the screen off animation has been performed. -->
     <bool name="config_dozeAfterScreenOffByDefault">true</bool>
 
-    <!-- Doze: should the TYPE_PICK_UP_GESTURE sensor be used as a pulse signal. -->
-    <bool name="config_dozePulsePickup">true</bool>
 
-    <!-- Type of the double tap sensor. Empty if double tap is not supported. -->
-    <string name="config_dozeDoubleTapSensorType" translatable="false">org.lineageos.sensor.double_tap</string>
 
-    <!-- Type of the tap sensor. Empty if tap is not supported. -->
-    <string name="config_dozeTapSensorType" translatable="false">org.lineageos.sensor.single_tap</string>
 
-    <!-- Type of the udfps long press sensor. Empty if long press is not supported. -->
-    <string name="config_dozeUdfpsLongPressSensorType" translatable="false">org.lineageos.sensor.udfps</string>
 
-    <!-- Control whether the always on display mode is available. This should only be enabled on
-         devices where the display has been tuned to be power efficient in DOZE and/or DOZE_SUSPEND
-         states. -->
-    <bool name="config_dozeAlwaysOnDisplayAvailable">true</bool>
 
-    <!-- Control whether the always on display mode is enabled by default. This value will be used
-         during initialization when the setting is still null. -->
-    <bool name="config_dozeAlwaysOnEnabled">false</bool>
 
     <!-- Power Management: Specifies whether to decouple the auto-suspend state of the
          device from the display on/off state.
@@ -713,8 +618,6 @@
          -->
     <bool name="config_enableMultiUserUI">true</bool>
 
-    <!-- Whether the new Auto Selection Network UI should be shown -->
-    <bool name="config_enableNewAutoSelectNetworkUI">true</bool>
 
     <!-- Safe headphone volume index. When music stream volume is below this index
     the SPL on headphone output is compliant to EN 60950 requirements for portable music
@@ -746,78 +649,19 @@
     <!-- Whether camera shutter sound is forced or not  (country specific). -->
     <bool name="config_camera_sound_forced">true</bool>
 
-    <!-- Flag indicating if the speed up audio on mt call code should be executed -->
-    <bool name="config_speed_up_audio_on_mt_calls">true</bool>
 
-    <!-- set to false if we need to show user confirmation
-         when alpha identifier is not provided by the UICC -->
-    <bool name="config_stkNoAlphaUsrCnf">false</bool>
 
     <!-- Flag indicating which package name can access the persistent data partition -->
     <string name="config_persistentDataPackageName" translatable="false">com.google.android.gms</string>
 
-    <!-- Flag specifying whether VoLTE is available on device -->
-    <bool name="config_device_volte_available">true</bool>
 
-    <!-- Flag specifying whether VoLTE should be available for carrier: independent of
-         carrier provisioning. If false: hard disabled. If true: then depends on carrier
-         provisioning, availability etc -->
-    <bool name="config_carrier_volte_available">true</bool>
 
-    <!-- Flag specifying whether VT is available on device -->
-    <bool name="config_device_vt_available">true</bool>
 
-    <!-- Flag specifying whether WFC over IMS is available on device -->
-    <bool name="config_device_wfc_ims_available">true</bool>
 
-    <!-- Config determines whether to update phone object when voice registration
-         state changes. Voice radio tech change will always trigger an update of
-         phone object irrespective of this config -->
-    <bool name="config_switch_phone_on_voice_reg_state_change">false</bool>
 
-    <!-- Number of physical SIM slots on the device. This includes both eSIM and pSIM slots, and
-         is not necessarily the same as the number of phones/logical modems supported by the device.
-         For example, a multi-sim device can have 2 phones/logical modems, but 3 physical slots,
-         or a single SIM device can have 1 phones/logical modems, but 2 physical slots (one eSIM
-         and one pSIM) -->
-    <integer name="config_num_physical_slots">2</integer>
 
-    <!--The default "usage setting" indicating that the device is either a voice-centric
-    device (1) or a data-centric device (2). A voice-centric device will require that any cellular
-    service that it uses provides access to voice capability, and a data-centric device will
-    likewise require that the network provides access to data services. These settings are
-    sent to the cellular modem and control the behavior in accordance with 3gpp TS 24.301 sec 4.3
-    (and equivalent functionality in other generations of cellular).-->
-    <integer name="config_default_cellular_usage_setting">-1</integer>
 
-    <!-- If true, the display will be shifted around in ambient mode. -->
-    <bool name="config_enableBurnInProtection">true</bool>
 
-    <!-- The bounding path of the cutout region of the main built-in display.
-         Must either be empty if there is no cutout region, or a string that is parsable by
-         {@link android.util.PathParser}.
-
-         The path is assumed to be specified in display coordinates with pixel units and in
-         the display's native orientation, with the origin of the coordinate system at the
-         center top of the display. Optionally, you can append either `@left` or `@right` to the
-         end of the path string, in order to change the path origin to either the top left,
-         or top right of the display.
-
-         To facilitate writing device-independent emulation overlays, the marker `@dp` can be
-         appended after the path string to interpret coordinates in dp instead of px units.
-         Note that a physical cutout should be configured in pixels for the best results.
-
-         If the display supports multiple resolutions, please define the path config based on the
-         highest resolution so that it can be scaled correctly in each resolution.
-
-         Example for a 10px x 10px square top-center cutout:
-                <string ...>M -5,0 L -5,10 L 5,10 L 5,0 Z</string>
-         Example for a 10dp x 10dp square top-center cutout:
-                <string ...>M -5,0 L -5,10 L 5,10 L 5,0 Z @dp</string>
-
-         @see https://www.w3.org/TR/SVG/paths.html#PathData
-         -->
-    <string name="config_mainBuiltInDisplayCutout" translatable="false">M 0,0 H -32 V 104 H 32 V 0 H 0 Z</string>
 
     <!-- Whether the Unprocessed audio source supports the required frequency range and level -->
     <bool name="config_supportAudioSourceUnprocessed">true</bool>
@@ -838,21 +682,10 @@
          non-zero. -->
     <integer name="config_defaultPeakRefreshRate">120</integer>
 
-    <!-- Whether the device enable the standalone (SA) mode of 5G NR.-->
-    <bool name="config_telephony5gStandalone">true</bool>
 
-    <!-- Whether the device enable the non-standalone (NSA) mode of 5G NR.-->
-    <bool name="config_telephony5gNonStandalone">true</bool>
 
-    <!-- Whether to select voice/data/sms preference without user confirmation -->
-    <bool name="config_voice_data_sms_auto_fallback">true</bool>
 
-    <!-- Whether to enable fp unlock when screen turns off on udfps devices -->
-    <bool name="config_screen_off_udfps_enabled">true</bool>
 
-    <!-- Default value for fp screen off unlock toggle, it only works for the devices that support
-         fp screen off unlock-->
-    <bool name="config_screen_off_udfps_default_on">true</bool>
 
     <!-- Whether device has turbo power charging support -->
     <bool name="config_hasTurboPowerCharger">true</bool>
