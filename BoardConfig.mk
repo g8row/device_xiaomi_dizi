@@ -115,8 +115,9 @@ BOARD_BOOTCONFIG := \
     androidboot.memcg=1 \
     androidboot.usbcontroller=a600000.dwc3
 
-# Bring-up: permissive SELinux on debuggable builds until the policy is done.
-ifneq ($(TARGET_BUILD_VARIANT),user)
+# SELinux is enforcing. For debugging, build with DIZI_SELINUX_PERMISSIVE=true
+# (ignored on user builds).
+ifeq ($(DIZI_SELINUX_PERMISSIVE)-$(filter user,$(TARGET_BUILD_VARIANT)),true-)
 BOARD_BOOTCONFIG += androidboot.selinux=permissive
 endif
 
