@@ -364,6 +364,11 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.wifi.passpoint.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.passpoint.xml \
     frameworks/native/data/etc/android.hardware.wifi.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.xml
 
+# Tablet core features (app widgets, device admin, ...) and no telephony
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/tablet_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/tablet_core_hardware.xml \
+    $(LOCAL_PATH)/configs/permissions/dizi_excluded_telephony_features.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/dizi_excluded_telephony_features.xml
+
 # Vendor
 $(call inherit-product, vendor/xiaomi/dizi/dizi-vendor.mk)
 
@@ -371,4 +376,10 @@ $(call inherit-product, vendor/xiaomi/dizi/dizi-vendor.mk)
 # Bring-up: trust the bench host's adb key on debuggable builds
 ifneq ($(TARGET_BUILD_VARIANT),user)
 PRODUCT_ADB_KEYS := $(LOCAL_PATH)/configs/bringup_adb_keys
+endif
+
+# Bring-up: EvoX init forces ro.debuggable=0 / ro.adb.secure=1 for Play
+# Integrity unless this is set (system/core/init LoadDebugProperties).
+ifdef WITH_ADB_INSECURE
+PRODUCT_SYSTEM_PROPERTIES += persist.sys.evox_debug_enabled=1
 endif
