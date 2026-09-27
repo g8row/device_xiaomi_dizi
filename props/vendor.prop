@@ -66,6 +66,11 @@ ro.bluetooth.a2dp_offload.supported=true
 vendor.hw.fm.init=0
 
 # Camera
+# Hide the aux/logical cameras from normal apps, like stock: logical camera 2
+# reports zoomRatioRange [FLT_MAX, 0] and crashes CameraX apps (Aperture).
+persist.vendor.camera.privapp.list=org.codeaurora.snapcam
+vendor.camera.aux.packagelist=com.xiaomi.runin,com.xiaomi.cameratest,com.xiaomi.factory.mmi,org.codeaurora.snapcam
+vendor.camera.aux.packagelistext=com.xiaomi.factory.CameraTestItem
 camera.disable_zsl_mode=true
 ro.camera.enableCamera1MaxZsl=1
 ro.hardware.camera=xiaomi
