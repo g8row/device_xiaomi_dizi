@@ -31,10 +31,12 @@
             "Name": "sysClassKgslKgsl3d0DevfreqMinFreq",
             "Path": "/sys/class/kgsl/kgsl-3d0/devfreq/min_freq",
             "Values": [
-                "295000000",
-                "345000000"
+                "734000000",
+                "600000000",
+                "345000000",
+                "295000000"
             ],
-            "DefaultIndex": 0,
+            "DefaultIndex": 3,
             "ResetOnInit": true
         },
         {
@@ -585,6 +587,18 @@
             "Node": "sysKernelMsmPerformanceParametersCpuMinFreq",
             "Value": "0:1958400 1:1958400 2:1958400 3:1958400 4:1900800 5:1900800 6:1900800 7:1900800",
             "Duration": 1000
+        },
+        {
+            "PowerHint": "INTERACTION",
+            "Node": "sysClassKgslKgsl3d0DevfreqMinFreq",
+            "Duration": 0,
+            "Value": "600000000"
+        },
+        {
+            "PowerHint": "EXPENSIVE_RENDERING",
+            "Node": "sysClassKgslKgsl3d0DevfreqMinFreq",
+            "Duration": 0,
+            "Value": "734000000"
         }
     ]
 }
