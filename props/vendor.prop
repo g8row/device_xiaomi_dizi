@@ -77,6 +77,11 @@ persist.vendor.camera.sensor=0
 # Chipset
 ro.soc.manufacturer=QTI
 
+# Dalvik
+# Stock dizi's app heap limit. garnet's init.qcom.rc used to set 512m at
+# runtime from vendor.display.lcd_density; the tablet makefile default is 192m.
+dalvik.vm.heapgrowthlimit=256m
+
 # Display
 ro.vendor.display.sensortype=2
 ro.vendor.display.svi=1
