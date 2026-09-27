@@ -11,4 +11,12 @@
         <item>restart_recovery</item>
         <item>restart_bootloader</item>
     </string-array>
+
+    <!-- Redmi Smart Pen button remapping (DiziPen KeyHandler) -->
+    <string-array name="config_deviceKeyHandlerLibs" translatable="false">
+        <item>/system_ext/priv-app/DiziPen/DiziPen.apk</item>
+    </string-array>
+    <string-array name="config_deviceKeyHandlerClasses" translatable="false">
+        <item>org.evolution.dizipen.KeyHandler</item>
+    </string-array>
 </resources>

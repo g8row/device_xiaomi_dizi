@@ -68,4 +68,46 @@
     <string name="custom_seekbar_default_value_to_set">Default value: <xliff:g id="v">%s</xliff:g>\nLong
           tap to set</string>
     <string name="custom_seekbar_default_value_is_set">Default value is set</string>
+
+    <!-- Redmi Smart Pen -->
+    <string name="pen_title">Redmi Smart Pen</string>
+    <string name="pen_summary">Pen buttons, battery and pairing</string>
+    <string name="pen_status_title">Status</string>
+    <string name="pen_status_not_paired">Not paired</string>
+    <string name="pen_status_paired">Paired, not connected</string>
+    <string name="pen_status_connected">Connected</string>
+    <string name="pen_status_connected_battery">Connected, battery %1$d%%</string>
+    <string name="pen_buttons_category">Buttons</string>
+    <string name="pen_button_up_title">Upper button</string>
+    <string name="pen_button_down_title">Lower button</string>
+    <string name="pen_button_app_title">App to open</string>
+    <string name="pen_advanced_category">Advanced</string>
+    <string name="pen_force_title">Always enable pen input</string>
+    <string name="pen_force_summary">Keep the touch panel in pen mode even when the pen is not connected over Bluetooth</string>
+    <string name="pen_forget_title">Forget pen</string>
+    <string name="pen_forget_summary">Remove the pairing. Hold the pen buttons to pair it again.</string>
+    <string name="pen_pairing_help">To pair, hold both pen buttons until the light flashes. The tablet pairs it automatically, without opening Bluetooth settings.</string>
+
+    <string-array name="pen_action_entries" translatable="false">
+        <item>Page up / page down (default)</item>
+        <item>Do nothing</item>
+        <item>Back</item>
+        <item>Home</item>
+        <item>Recent apps</item>
+        <item>Screenshot</item>
+        <item>Play / pause</item>
+        <item>New note</item>
+        <item>Open app</item>
+    </string-array>
+    <string-array name="pen_action_values" translatable="false">
+        <item>default</item>
+        <item>none</item>
+        <item>back</item>
+        <item>home</item>
+        <item>recents</item>
+        <item>screenshot</item>
+        <item>play_pause</item>
+        <item>notes</item>
+        <item>app</item>
+    </string-array>
 </resources>
