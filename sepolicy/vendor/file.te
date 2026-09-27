@@ -23,3 +23,5 @@ type proc_walt, fs_type, proc_type;
 
 # Wifi
 type vendor_mac_vendor_data_file, data_file_type, file_type, mlstrustedobject;
+type sysfs_lcm_name, sysfs_type, fs_type;
+type vendor_proc_last_kmsg, fs_type, proc_type;
