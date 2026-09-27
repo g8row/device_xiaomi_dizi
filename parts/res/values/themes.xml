@@ -28,4 +28,9 @@
         <item name="colorControlNormal">?android:attr/colorControlNormal</item>
     </style>
 
+    <!-- The expressive SettingsLib theme leaves the AppCompat colorControlHighlight
+         unset; the pressed preference background then renders magenta. -->
+    <style name="Theme.XiaomiParts" parent="Theme.SubSettingsBase.Expressive">
+        <item name="colorControlHighlight">?android:attr/colorControlHighlight</item>
+    </style>
 </resources>

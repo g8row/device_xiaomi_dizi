@@ -43,7 +43,7 @@
         android:persistent="true"
         android:defaultToDeviceProtectedStorage="true"
         android:directBootAware="true"
-        android:theme="@style/Theme.SubSettingsBase.Expressive">
+        android:theme="@style/Theme.XiaomiParts">
 
         <receiver
             android:name=".BootCompletedReceiver"
