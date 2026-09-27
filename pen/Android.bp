@@ -12,6 +12,10 @@ android_app {
     privileged: true,
     system_ext_specific: true,
     required: ["xiaomi-pen"],
+
+    optimize: {
+        proguard_flags_files: ["proguard.flags"],
+    },
 }
 
 cc_binary {
