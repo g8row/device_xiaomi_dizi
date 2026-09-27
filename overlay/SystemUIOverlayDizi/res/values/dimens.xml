@@ -6,5 +6,8 @@
 <resources>
     <dimen name="keyguard_indication_margin_bottom">145dp</dimen>
 
-
+    <!-- The shade blur makes SurfaceFlinger GPU-compose everything under it, on a
+         2560x1600 panel at 120 Hz. 34dp (68px at xhdpi) costs ~2.4 points of QS
+         jank on the Adreno 710; a smaller radius needs fewer Kawase passes. -->
+    <dimen name="max_shade_window_blur_radius">20dp</dimen>
 </resources>
