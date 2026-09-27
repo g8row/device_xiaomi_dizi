@@ -727,4 +727,11 @@
          running in WAL mode.
          Choices are: FULL, NORMAL, OFF. -->
     <string name="db_wal_sync_mode" translatable="false">OFF</string>
+
+    <!-- Desktop windowing: the app handle offers it (config_isDesktopModeSupported
+         is set by the tablet config), so let the built-in display host desks.
+         Without this, drag-to-desktop hangs in createDeskImmediate. -->
+    <bool name="config_isDesktopModeSupported">true</bool>
+    <bool name="config_canInternalDisplayHostDesktops">true</bool>
+    <bool name="config_isDesktopModeDevOptionSupported">true</bool>
 </resources>
