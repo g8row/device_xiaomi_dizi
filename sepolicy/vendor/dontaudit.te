@@ -1,7 +1,6 @@
 # Harmless probes by prebuilt or platform code.
 # The QTI camera HAL enumerates every property it can see.
 dontaudit hal_camera_default property_type:file { getattr map open read };
-dontaudit hal_thermal_default self:capability dac_read_search;
 dontaudit priv_app device:dir { open read };
 dontaudit priv_app proc_version:file { getattr open read };
 dontaudit vendor_modprobe self:key write;
@@ -21,3 +20,5 @@ dontaudit hal_bluetooth_default default_prop:property_service set;
 dontaudit vendor_wcnss_service radio_prop:property_service set;
 dontaudit vendor_wcnss_service init:unix_stream_socket connectto;
 dontaudit vendor_wcnss_service property_socket:sock_file write;
+# modprobe probes CAP_SYS_ADMIN under enforcing; all 373 modules still load (b24).
+dontaudit vendor_modprobe self:capability sys_admin;

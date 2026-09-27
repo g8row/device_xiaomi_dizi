@@ -1,0 +1,4 @@
+# EvoX GameBar (init.gamebar.rc) makes two thermal zones' temp nodes system:system
+# 0660; the root-running QTI thermal HAL needs a read-only DAC bypass for them, or it
+# reports no temperatures at all under enforcing (build-24).
+allow hal_thermal_default self:capability dac_read_search;
