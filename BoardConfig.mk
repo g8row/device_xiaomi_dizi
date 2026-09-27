@@ -92,7 +92,13 @@ TARGET_KERNEL_CONFIG := \
     gki_defconfig \
     vendor/parrot_GKI.config
 TARGET_FORCE_PREBUILT_KERNEL := true
+# DIZI_SOURCE_KERNEL=true boots the source-built GKI Image (dizi-kernel README) with the same
+# stock dtb, dtbo and modules; the stock Image stays the default until it has soaked.
+ifeq ($(DIZI_SOURCE_KERNEL),true)
+TARGET_PREBUILT_KERNEL := $(KERNEL_PATH)/Image-source
+else
 TARGET_PREBUILT_KERNEL := $(KERNEL_PATH)/Image
+endif
 BOARD_PREBUILT_DTBIMAGE_DIR := $(KERNEL_PATH)/dtb
 BOARD_PREBUILT_DTBOIMAGE := $(KERNEL_PATH)/dtbo.img
 BOARD_INCLUDE_DTB_IN_BOOTIMG := true
