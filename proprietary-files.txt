@@ -1017,6 +1017,7 @@ vendor/etc/init/vendor.qti.media.c2audio@1.0-service.rc
 vendor/etc/seccomp_policy/codec2.vendor.base-arm64.policy
 vendor/etc/seccomp_policy/codec2.vendor.ext-arm64.policy
 vendor/etc/vintf/manifest/c2_manifest_vendor_audio.xml
+vendor/etc/vintf/manifest/c2_manifest_vendor_parrot.xml
 vendor/lib64/libdsd2pcm.so
 vendor/lib64/libEvrcSwCodec.so
 vendor/lib64/libqc2audio_base.so
