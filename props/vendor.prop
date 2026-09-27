@@ -17,7 +17,6 @@ ro.config.alarm_vol_steps=15
 ro.config.system_vol_steps=15
 ro.config.vc_call_vol_steps=11
 ro.vendor.audio.camera.loopback.support=false
-ro.vendor.audio.elus.enable=true
 ro.vendor.audio.feature.spatial=7
 ro.vendor.audio.gain.support=true
 ro.vendor.audio.soundtrigger.appdefine.cnn.level=45
@@ -45,8 +44,6 @@ vendor.audio.hdr.record.enable=false
 vendor.audio.offload.buffer.size.kb=256
 vendor.audio.safx.pbe.enabled=false
 vendor.audio.ull_record_period_multiplier=2
-vendor.audio.ultrasound.stoplatency=60
-vendor.audio.ultrasound.usync=1000
 vendor.audio.volume.headset.gain.depcal=true
 vendor.audio_hal.period_size=192
 vendor.qc2audio.per_frame.flac.dec.enabled=true
@@ -108,10 +105,6 @@ persist.vendor.dpm.vndr.feature=1
 persist.vendor.dpm.vndr.halservice.enable=1
 persist.vendor.dpm.vndr.idletimer.mode=default
 
-# Fingerprint
-persist.vendor.fingerprint.type=udfps_optical
-persist.vendor.fingerprint.sensor_location=610|2437|105
-
 # FUSE
 persist.sys.fuse.passthrough.enable=true
 
@@ -140,7 +133,6 @@ debug.sf.treat_170m_as_sRGB=1
 debug.sf.use_phase_offsets_as_durations=1
 debug.sf.defer_refresh_rate_when_off=1
 debug.sf.enable_egl_image_tracker=0
-persist.mm.enable.prefetch=true
 persist.sys.sf.color_mode=0
 persist.sys.sf.color_saturation=1.0
 persist.sys.sf.native_mode=258
@@ -184,29 +176,8 @@ vendor.perf.framepacing.enable=1
 # Qcomd
 persist.vendor.qcomsysd.enabled=1
 
-# Radio
-persist.dbg.volte_avail_ovr=1
-persist.dbg.vt_avail_ovr=1
-persist.dbg.wfc_avail_ovr=1
-persist.radio.multisim.config=dsds
-persist.vendor.radio.apm_sim_not_pwdn=1
-persist.vendor.radio.custom_ecc=1
-persist.vendor.radio.dynamic_sar=1
-persist.vendor.radio.enableadvancedscan=true
-persist.vendor.radio.procedure_bytes=SKIP
-persist.vendor.radio.sib16_support=1
-ro.vendor.radio.build_profile=w-stable
-
 # RCS
 persist.vendor.rcs.singlereg.feature=1
-
-# Sensors
-ro.vendor.sensors.xiaomi.double_tap=true
-ro.vendor.sensors.xiaomi.single_tap=true
-ro.vendor.sensors.xiaomi.udfps=true
-
-# SSR
-persist.vendor.ssr.restart_level=ALL_ENABLE
 
 # USB
 sys.usb.mtp.batchcancel=1
