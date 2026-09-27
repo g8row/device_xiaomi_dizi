@@ -82,6 +82,28 @@ ro.soc.manufacturer=QTI
 # runtime from vendor.display.lcd_density; the tablet makefile default is 192m.
 dalvik.vm.heapgrowthlimit=256m
 
+# Display (boot values)
+# These replace CAF's init.qti.display_boot.sh (parrot, soc_id 638). As build.prop values
+# they are set before the composer starts; overriding the script's values from
+# init.dizi.rc raced with it (b27: the composer read enable_rotator_ui=1 again).
+# enable_spec_fence=0: as Xiaomi's script. With 1 every commit waits an extra vsync.
+# enable_rotator_ui=0: in landscape the rotated, zoomed wallpaper fails the inline
+# rotator and the whole frame falls back to GPU composition.
+vendor.display.disable_mitigated_fps=1
+vendor.display.disable_non_wfd_vds=1
+vendor.display.enable_allow_idle_fallback=1
+vendor.display.enable_perf_hint_large_comp_cycle=1
+vendor.display.enable_posted_start_dyn=2
+vendor.display.enable_qsync_idle=1
+vendor.display.enable_rc_support=1
+vendor.display.enable_rotator_ui=0
+vendor.display.enable_spec_fence=0
+vendor.display.secure_preview_buffer_format=420_sp
+vendor.display.target.version=2
+vendor.display.thermal.version=1
+vendor.gralloc.secure_preview_buffer_format=420_sp
+vendor.gralloc.use_dma_buf_heaps=1
+
 # Display
 ro.vendor.display.sensortype=2
 ro.vendor.display.svi=1
