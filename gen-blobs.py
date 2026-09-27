@@ -20,7 +20,11 @@ BLOB_PARTS = ('vendor', 'odm', 'system', 'system_ext', 'product')
 # garnet's 'RIL' section also carries platform daemons dizi needs (pd-mapper,
 # rmt_storage, tftp_server, qti, ...), so only its modem/IMS daemons go.
 SKIP_SECTIONS = ('EMBMS', 'IMS', 'Fingerprint', 'NFC', 'Secure element', 'ESE powermanager')
-SKIP_ENTRIES = re.compile(r'(qcrilNrd|imsdaemon|ims_rtp_daemon|ATFWD-daemon)(\.rc)?$')
+SKIP_ENTRIES = re.compile(r'(qcrilNrd|imsdaemon|ims_rtp_daemon|ATFWD-daemon)(\.rc)?$'
+                          # Telephony apps crash-loop without a modem (build-13).
+                          r'|QtiTelephony(Service)?\.apk|priv-app/ims/|qcrilmsgtunnel|AtFwd2|libims(camera|media)_jni'
+                          # Modem data daemons: stock dizi never runs them (build-21).
+                          r'|etc/init/(dataadpl|dataqti|modemManager|netmgrd|port-bridge)\.rc')
 
 # Globs (relative to the dump) for dizi-specific groups.
 EXTRA: dict[str, list[str]] = {
@@ -31,6 +35,17 @@ EXTRA: dict[str, list[str]] = {
         'vendor/lib64/hw/com.qti.chi.override.so',
         'vendor/lib64/camera/**',
         'vendor/etc/camera/**',
+    ],
+    # Stock (Xiaomi-patched) SDM core under the source composer: the source
+    # core reports dpi 24.95 (panel size is in 0.1 mm) and its scaler input
+    # fails for rotated video (research/display-composer.md). The prefer:true
+    # prebuilt replaces the source libsdmcore module. Its new dependency
+    # vendor.xiaomi.hardware.displayfeature@1.0 is built from hardware/xiaomi.
+    # vendor/lib too: PRODUCT_PACKAGES installs every arch of the name, so a
+    # 64-bit-only prebuilt would drag in the 32-bit source core and its deps.
+    'Display (stock SDM core)': [
+        'vendor/lib/libsdmcore.so',
+        'vendor/lib64/libsdmcore.so',
     ],
     'Display panel configs': [
         'odm/etc/disp0/**',
@@ -45,6 +60,20 @@ EXTRA: dict[str, list[str]] = {
     ],
     'Audio configs': [
         'vendor/etc/acdbdata/**',
+    ],
+    # Without it the speaker amps never power up: no sound at all (build-16).
+    # garnet's list has the binary but not the rc, so it never started (build-21).
+    'Batterysecret': [
+        'vendor/etc/init/init.batterysecret.rc',
+    ],
+    'Speaker amplifier firmware': [
+        'vendor/firmware/sipa.bin',
+        'vendor/firmware/fs1815.fsm',
+    ],
+    # garnet's list has c2_manifest_vendor.xml; dizi names it after the SoC.
+    # Without it the QTI video codec store cannot register (build-15).
+    'Media': [
+        'vendor/etc/vintf/manifest/c2_manifest_vendor_parrot.xml',
     ],
     'Thermal': [
         'vendor/bin/mi_thermald',

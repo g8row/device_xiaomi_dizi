@@ -1565,6 +1565,10 @@ vendor/lib64/libwvhidl.so
 vendor/lib64/libwvkeybox.so
 vendor/lib64/mediadrm/libwvdrmengine.so
 
+# Display (stock SDM core)
+vendor/lib/libsdmcore.so
+vendor/lib64/libsdmcore.so
+
 # Display panel configs
 odm/etc/disp0/mdss_dsi_n83_35_02_0a_wqxga_video_cphy/cct_pcc.txt
 odm/etc/disp0/mdss_dsi_n83_35_02_0a_wqxga_video_cphy/clstc/clstc_gc_0.txt
