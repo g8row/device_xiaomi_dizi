@@ -25,3 +25,6 @@ ro.mot.eri.losalert.delay=100
 ro.vendor.use_data_netmgrd=true
 ro.vold.umsdirtyratio=20
 power.saving.mode=1
+
+# Device name, as stock
+ro.product.marketname=Redmi Pad Pro
