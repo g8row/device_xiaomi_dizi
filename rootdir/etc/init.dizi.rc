@@ -38,6 +38,17 @@ service vendor.audio-hal /vendor/bin/hw/android.hardware.audio.service
     task_profiles ProcessCapacityHigh HighPerformance
     onrestart restart audioserver
 
+# EvoX GameBar's init.gamebar.rc makes two thermal zones' temp nodes
+# system:system 0660. The QTI thermal HAL runs as root in group root, and AOSP
+# forbids a DAC-bypass capability for it, so give it the system group; without
+# it the HAL reports no temperatures under enforcing (build-24).
+service vendor.thermal-hal /vendor/bin/hw/android.hardware.thermal-service.qti
+    override
+    interface aidl android.hardware.thermal.IThermal/default
+    class hal
+    user root
+    group root system
+
 service vendor.sensors-hal-multihal /vendor/bin/hw/android.hardware.sensors-service.xiaomi-multihal
     override
     class hal
