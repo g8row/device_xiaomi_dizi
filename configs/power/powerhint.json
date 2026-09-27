@@ -31,12 +31,13 @@
             "Name": "sysClassKgslKgsl3d0DevfreqMinFreq",
             "Path": "/sys/class/kgsl/kgsl-3d0/devfreq/min_freq",
             "Values": [
+                "940000000",
                 "734000000",
                 "600000000",
                 "345000000",
                 "295000000"
             ],
-            "DefaultIndex": 3,
+            "DefaultIndex": 4,
             "ResetOnInit": true
         },
         {
@@ -598,7 +599,7 @@
             "PowerHint": "EXPENSIVE_RENDERING",
             "Node": "sysClassKgslKgsl3d0DevfreqMinFreq",
             "Duration": 0,
-            "Value": "734000000"
+            "Value": "940000000"
         }
     ]
 }
