@@ -367,7 +367,8 @@ PRODUCT_COPY_FILES += \
 # Tablet core features (app widgets, device admin, ...) and no telephony
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/tablet_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/tablet_core_hardware.xml \
-    $(LOCAL_PATH)/configs/permissions/dizi_excluded_telephony_features.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/dizi_excluded_telephony_features.xml
+    $(LOCAL_PATH)/configs/permissions/dizi_excluded_telephony_features.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/dizi_excluded_telephony_features.xml \
+    $(LOCAL_PATH)/configs/permissions/privapp-permissions-dizipen.xml:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/permissions/privapp-permissions-dizipen.xml
 
 # Vendor
 $(call inherit-product, vendor/xiaomi/dizi/dizi-vendor.mk)

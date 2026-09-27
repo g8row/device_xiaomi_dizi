@@ -18,7 +18,10 @@ public class BootCompletedReceiver extends BroadcastReceiver {
         if (!Intent.ACTION_LOCKED_BOOT_COMPLETED.equals(intent.getAction()) || sMonitor != null) {
             return;
         }
-        sMonitor = new PenMonitor(context.getApplicationContext());
+        Context app = context.getApplicationContext();
+        PenPairer pairer = new PenPairer(app);
+        pairer.start();
+        sMonitor = new PenMonitor(app, pairer);
         sMonitor.start();
     }
 }

@@ -28,10 +28,12 @@ public final class PenMonitor implements InputManager.InputDeviceListener {
     private static final String PROP_FORCE = "persist.vendor.pen.force";
 
     private final InputManager mInputManager;
+    private final PenPairer mPairer;
     private boolean mConnected;
 
-    PenMonitor(Context context) {
+    PenMonitor(Context context, PenPairer pairer) {
         mInputManager = context.getSystemService(InputManager.class);
+        mPairer = pairer;
     }
 
     void start() {
@@ -39,6 +41,7 @@ public final class PenMonitor implements InputManager.InputDeviceListener {
         // Re-evaluate when persist.vendor.pen.force is toggled (e.g. via adb).
         SystemProperties.addChangeCallback(this::refresh);
         refresh();
+        mPairer.setPenConnected(mConnected);
     }
 
     private boolean isPen(int deviceId) {
@@ -62,6 +65,7 @@ public final class PenMonitor implements InputManager.InputDeviceListener {
         mConnected = connected;
         Log.i(TAG, "pen " + (connected ? "connected" : "disconnected"));
         SystemProperties.set(PROP_STATE, connected ? "connected" : "disconnected");
+        mPairer.setPenConnected(connected);
     }
 
     @Override
