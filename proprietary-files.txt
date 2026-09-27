@@ -1018,6 +1018,10 @@ vendor/etc/seccomp_policy/codec2.vendor.base-arm64.policy
 vendor/etc/seccomp_policy/codec2.vendor.ext-arm64.policy
 vendor/etc/vintf/manifest/c2_manifest_vendor_audio.xml
 vendor/etc/vintf/manifest/c2_manifest_vendor_parrot.xml
+
+# Speaker amplifier firmware (SI-PA; FourSemi fs1815 on other units)
+vendor/firmware/fs1815.fsm
+vendor/firmware/sipa.bin
 vendor/lib64/libdsd2pcm.so
 vendor/lib64/libEvrcSwCodec.so
 vendor/lib64/libqc2audio_base.so
