@@ -31,6 +31,8 @@ genfscon proc /sys/walt u:object_r:proc_walt:s0
 
 # Battery
 genfscon sysfs /devices/virtual/power_supply/batt_verify u:object_r:vendor_sysfs_battery_supply:s0
+# Prefix match: covers the wakeupN node whatever N the kernel picks.
+genfscon sysfs /devices/virtual/power_supply/batt_verify/wakeup u:object_r:sysfs_wakeup:s0
 
 # Display panel name, read by the sensors daemon (as stock)
 genfscon sysfs /android_lcd/lcd_name u:object_r:sysfs_lcm_name:s0
