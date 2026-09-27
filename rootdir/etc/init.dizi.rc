@@ -86,3 +86,10 @@ on property:init.svc.adbd=running && property:ro.debuggable=1
 # (PerformHwCommit ~15 ms at 120 Hz) and apps stall ~46 ms per frame.
 on property:vendor.display.enable_spec_fence=1
     setprop vendor.display.enable_spec_fence 0
+
+# Display: in landscape the wallpaper is a 2560x1600 buffer that needs a 90 degree
+# rotation plus the launcher's zoom scale. With the inline rotator allowed for UI
+# layers, the composer fails to reserve it and falls back to GPU composition
+# for every layer, every frame. Without it only the wallpaper goes to the GPU.
+on property:vendor.display.enable_rotator_ui=1
+    setprop vendor.display.enable_rotator_ui 0
