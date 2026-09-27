@@ -100,6 +100,11 @@ blob_fixups: blob_fixups_user_type = {
         'vendor/etc/camera/pureShot_parameter.xml'
     ): blob_fixup()
         .regex_replace(r'=(\d+)>', r'="\1">'),
+    # Android 16's libcodec2_hidl/vndk call uname and setsockopt, which
+    # dizi's policy lacks: the QTI c2 HAL dies with SIGSYS (build-13).
+    'vendor/etc/seccomp_policy/codec2.vendor.ext-arm64.policy': blob_fixup()
+        .add_line_if_missing('uname: 1')
+        .add_line_if_missing('setsockopt: 1'),
     'vendor/etc/media_codecs_parrot_v0.xml': blob_fixup()
         .regex_replace('.+media_codecs_(google_audio|google_c2|google_telephony|vendor_audio).+\n', '')
         .regex_replace(r'<MediaCodec name="c2\.dolby[\s\S]*?</MediaCodec>', ''),
