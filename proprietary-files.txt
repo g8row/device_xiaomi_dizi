@@ -86,6 +86,7 @@ vendor/lib64/soundfx/libasphere.so
 
 # Batterysecret
 vendor/bin/batterysecret
+vendor/etc/init/init.batterysecret.rc
 
 # Bluetooth
 vendor/bin/hw/android.hardware.bluetooth@1.0-service-qti
@@ -1073,7 +1074,6 @@ vendor/lib64/libmlipay@1.1.so
 
 # Modem manager
 vendor/bin/modemManager
-vendor/etc/init/modemManager.rc
 vendor/etc/seccomp_policy/modemManager.policy
 
 # Native public libraries
@@ -1249,10 +1249,6 @@ vendor/bin/ssgtzd
 vendor/bin/tftp_server
 vendor/etc/data/dsi_config.xml
 vendor/etc/data/netmgr_config.xml
-vendor/etc/init/dataadpl.rc
-vendor/etc/init/dataqti.rc
-vendor/etc/init/netmgrd.rc
-vendor/etc/init/port-bridge.rc
 vendor/etc/init/ssgtzd.rc
 vendor/etc/init/vendor.qti.rmt_storage.rc
 vendor/etc/init/vendor.qti.tftp.rc
