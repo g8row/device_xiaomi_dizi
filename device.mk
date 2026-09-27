@@ -266,6 +266,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     DiziPen
 
+# Wallpaper & style: drop the incompatible Flex clock plugin
+PRODUCT_PACKAGES += \
+    dizi_no_flex_clock
+
 # Power
 PRODUCT_PACKAGES += \
     android.hardware.power-service.lineage-libperfmgr \
