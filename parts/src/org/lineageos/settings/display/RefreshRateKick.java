@@ -28,11 +28,17 @@ public final class RefreshRateKick {
     private static final String PEAK = "peak_refresh_rate";
     private static final String KICK_RATE = "60.0";
     private static final long HOLD_MS = 1000;
+    /** Global setting; 0 skips the round trip (to test a kernel-side fix). */
+    private static final String ENABLE = "dizi_refresh_kick";
 
     private RefreshRateKick() {}
 
     public static void run(Context context) {
         final ContentResolver resolver = context.getContentResolver();
+        if (Settings.Global.getInt(resolver, ENABLE, 1) == 0) {
+            Log.i(TAG, "Display mode round trip disabled");
+            return;
+        }
         final String min = Settings.System.getString(resolver, MIN);
         final String peak = Settings.System.getString(resolver, PEAK);
         Settings.System.putString(resolver, PEAK, KICK_RATE);
