@@ -148,6 +148,10 @@ BOARD_VENDOR_KERNEL_MODULES := $(filter-out %/msm_drm.ko,$(BOARD_VENDOR_KERNEL_M
 endif
 
 # Partitions
+# GApps built in (vendor/gapps): nothing is sideloaded later, so skip the reserved headroom.
+ifneq ($(wildcard vendor/gapps/arm64/arm64-vendor.mk),)
+WITHOUT_RESERVED_SIZE := true
+endif
 -include vendor/lineage/config/BoardConfigReservedSize.mk
 
 BOARD_BOOTIMAGE_PARTITION_SIZE := 134217728

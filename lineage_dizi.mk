@@ -15,6 +15,9 @@ $(call inherit-product, vendor/lineage/config/common_full_tablet_wifionly.mk)
 # Inherit from dizi device
 $(call inherit-product, device/xiaomi/dizi/device.mk)
 
+# Built-in GApps (MindTheGapps vendor/gapps), when the tree has them
+$(call inherit-product-if-exists, vendor/gapps/arm64/arm64-vendor.mk)
+
 # EvolutionX Config
 TARGET_BOOT_ANIMATION_RES := 1600
 TARGET_BUILD_APERTURE_CAMERA := true
