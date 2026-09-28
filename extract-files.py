@@ -110,6 +110,11 @@ blob_fixups: blob_fixups_user_type = {
         .regex_replace(r'<MediaCodec name="c2\.dolby[\s\S]*?</MediaCodec>', ''),
     'vendor/etc/vintf/manifest/c2_manifest_vendor.xml': blob_fixup()
         .regex_replace('dolby', 'default1'),
+    # The Dolby Vision store (dolbycodec2) is off on dizi (its c2.dolby codecs are stripped above).
+    # A declared HIDL instance that never registers makes every Codec2 client's getService block:
+    # mediaserver's codec list, then cameraserver's HEIC setup, then system_server's watchdog.
+    'vendor/etc/vintf/manifest/c2_manifest_vendor_parrot.xml': blob_fixup()
+        .regex_replace(r'.*<fqname>@1\.0::IComponentStore/dolby</fqname>.*\n', ''),
     (
         'vendor/lib64/libagm.so',
         'vendor/lib64/libmcs.so',
