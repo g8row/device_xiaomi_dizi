@@ -241,6 +241,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     FrameworkOverlayDizi \
     GameBarOverlayDizi \
+    LauncherOverlayDizi \
     LineageSDKOverlayDizi \
     LineageSettingsOverlayDizi \
     LineageSystemUIOverlayDizi \
