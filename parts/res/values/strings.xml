@@ -89,7 +89,7 @@
     <string name="pen_pairing_help">To pair, hold both pen buttons until the light flashes. The tablet pairs it automatically, without opening Bluetooth settings.</string>
 
     <string-array name="pen_action_entries" translatable="false">
-        <item>Page up / page down (default)</item>
+        <item>Stylus button, handled by the app (default)</item>
         <item>Do nothing</item>
         <item>Back</item>
         <item>Home</item>

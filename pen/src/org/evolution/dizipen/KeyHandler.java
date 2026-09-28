@@ -24,8 +24,10 @@ import com.android.internal.os.DeviceKeyHandler;
 /**
  * Remaps the Redmi Smart Pen buttons. Loaded into system_server by
  * PhoneWindowManager (config_deviceKeyHandlerLibs/Classes), so it must stay
- * small and never throw. The pen reports its two buttons as KEYCODE_PAGE_UP /
- * KEYCODE_PAGE_DOWN on its "Keyboard" HID device; only that device is touched.
+ * small and never throw. The pen's "Keyboard" HID device sends KEY_PAGEUP (upper
+ * button) and KEY_PAGEDOWN (lower); the stock key layout Vendor_0022_Product_4e83.kl
+ * maps them to KEYCODE_STYLUS_BUTTON_PRIMARY / _SECONDARY. Both forms are handled,
+ * only on that device.
  * Actions are chosen in XiaomiParts and stored in Settings.Secure.
  */
 public class KeyHandler implements DeviceKeyHandler {
@@ -51,20 +53,29 @@ public class KeyHandler implements DeviceKeyHandler {
     @Override
     public KeyEvent handleKeyEvent(KeyEvent event) {
         int code = event.getKeyCode();
-        if (code != KeyEvent.KEYCODE_PAGE_UP && code != KeyEvent.KEYCODE_PAGE_DOWN) {
-            return event;
+        boolean up;
+        switch (code) {
+            case KeyEvent.KEYCODE_STYLUS_BUTTON_PRIMARY:
+            case KeyEvent.KEYCODE_PAGE_UP:
+                up = true;
+                break;
+            case KeyEvent.KEYCODE_STYLUS_BUTTON_SECONDARY:
+            case KeyEvent.KEYCODE_PAGE_DOWN:
+                up = false;
+                break;
+            default:
+                return event;
         }
         InputDevice device = InputDevice.getDevice(event.getDeviceId());
         if (device == null || device.getVendorId() != PEN_VENDOR_ID
                 || device.getProductId() != PEN_PRODUCT_ID) {
             return event;
         }
-        boolean up = code == KeyEvent.KEYCODE_PAGE_UP;
         ContentResolver cr = mContext.getContentResolver();
         String action = Settings.Secure.getStringForUser(cr,
                 up ? KEY_ACTION_UP : KEY_ACTION_DOWN, UserHandle.USER_CURRENT);
         if (action == null || action.isEmpty() || action.equals("default")) {
-            return event;  // plain page up / page down
+            return event;  // the pen's own key (stylus button)
         }
         if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() == 0) {
             String app = Settings.Secure.getStringForUser(cr,
