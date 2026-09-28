@@ -6,7 +6,11 @@ Starts from the garnet list, keeps entries that exist in the dizi stock dump
 closes the set over ELF DT_NEEDED so nothing a listed blob links against is
 left out. Libraries that the ROM builds from source are skipped.
 
-Usage: gen-blobs.py <garnet-list> <dump-dir> <source-tree> > proprietary-files.txt
+Usage: gen-blobs.py [--telephony] [--source=<rom>] <garnet-list> <dump-dir> <source-tree> > proprietary-files.txt
+
+--telephony keeps garnet's modem, IMS, eMBMS and secure element blobs (ruan,
+the 5G model); by default they are dropped for the Wi-Fi-only dizi.
+--source names the stock ROM in the header comment.
 """
 
 import re
@@ -20,6 +24,7 @@ BLOB_PARTS = ('vendor', 'odm', 'system', 'system_ext', 'product')
 # garnet's 'RIL' section also carries platform daemons dizi needs (pd-mapper,
 # rmt_storage, tftp_server, qti, ...), so only its modem/IMS daemons go.
 SKIP_SECTIONS = ('EMBMS', 'IMS', 'Fingerprint', 'NFC', 'Secure element', 'ESE powermanager')
+SKIP_SECTIONS_TELEPHONY = ('Fingerprint', 'NFC', 'ESE powermanager')
 SKIP_ENTRIES = re.compile(r'(qcrilNrd|imsdaemon|ims_rtp_daemon|ATFWD-daemon)(\.rc)?$'
                           # Telephony apps crash-loop without a modem (build-13).
                           r'|QtiTelephony(Service)?\.apk|priv-app/ims/|qcrilmsgtunnel|AtFwd2|libims(camera|media)_jni'
@@ -84,6 +89,17 @@ EXTRA: dict[str, list[str]] = {
     ],
 }
 
+# Extra groups for --telephony (ruan) that garnet's list lacks.
+EXTRA_TELEPHONY: dict[str, list[str]] = {
+    'RIL database': [
+        'vendor/etc/qcril_database/**',
+    ],
+    'RIL (ruan)': [
+        'vendor/bin/ccid_daemon_nr',
+        'vendor/etc/vintf/manifest/vendor.qti.hardware.radio.qtiradioconfig.xml',
+    ],
+}
+
 
 def dump_path(src: str) -> str:
     """Map a list entry source to its path relative to the dump."""
@@ -130,7 +146,16 @@ def elf_class(path: Path) -> int | None:
 
 
 def main() -> None:
-    garnet_list, dump, src_tree = Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3])
+    args = sys.argv[1:]
+    telephony = '--telephony' in args
+    if telephony:
+        args.remove('--telephony')
+    source = 'dizi_eea OS3.0.303.0.WNSEUXM'
+    for arg in [a for a in args if a.startswith('--source=')]:
+        source = arg.removeprefix('--source=')
+        args.remove(arg)
+    garnet_list, dump, src_tree = map(Path, args)
+    skip_sections = SKIP_SECTIONS_TELEPHONY if telephony else SKIP_SECTIONS
     exists = lambda rel: (dump / rel).exists() or (dump / rel).is_symlink()
 
     sections: dict[str, list[str]] = {}
@@ -142,14 +167,14 @@ def main() -> None:
         if line.startswith('#'):
             section = line.lstrip('# ').strip()
             continue
-        if not line.strip() or section.startswith(SKIP_SECTIONS):
+        if not line.strip() or section.startswith(skip_sections):
             continue
         entry = line.split('|')[0]
         body = entry.lstrip('-')
         prefix = entry[:len(entry) - len(body)]
         spec, _, flags = body.partition(';')
         src, _, dst = spec.partition(':')
-        if SKIP_ENTRIES.search(src):
+        if not telephony and SKIP_ENTRIES.search(src):
             continue
         if not exists(dump_path(src)):
             # Pinned blob imported from another device: use dizi's own copy.
@@ -157,12 +182,15 @@ def main() -> None:
                 src, dst = dst, ''
             else:
                 continue
+        if telephony:
+            # garnet rebuilds qcrilNr.db from these; ruan ships the stock database and sql as is.
+            flags = ';'.join(f for f in flags.split(';') if f and not f.startswith('FILEGROUP='))
         new = prefix + src + (f':{dst}' if dst else '') + (f';{flags}' if flags else '')
         sections.setdefault(section, []).append(new)
         listed.add(dump_path(src))
 
     # 2. Dizi-only groups.
-    for section, patterns in EXTRA.items():
+    for section, patterns in (EXTRA | EXTRA_TELEPHONY if telephony else EXTRA).items():
         for pattern in patterns:
             for rel in glob_dump(dump, pattern):
                 if rel not in listed:
@@ -205,7 +233,7 @@ def main() -> None:
     if added:
         sections.setdefault('Dependencies (DT_NEEDED closure)', []).extend(added)
 
-    out = ['# All unpinned blobs are extracted from dizi_eea OS3.0.303.0.WNSEUXM']
+    out = [f'# All unpinned blobs are extracted from {source}']
     for section, entries in sections.items():
         out.append(f'\n# {section}')
         out.extend(sorted(set(entries), key=lambda e: e.lstrip('-').lower()))
