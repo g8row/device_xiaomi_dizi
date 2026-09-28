@@ -136,6 +136,14 @@ BOARD_VENDOR_KERNEL_MODULES := $(wildcard $(KERNEL_PATH)/modules/vendor_dlkm/*.k
 BOARD_VENDOR_KERNEL_MODULES_LOAD := $(strip $(shell cat $(KERNEL_PATH)/modules/vendor_dlkm/modules.load))
 BOARD_VENDOR_KERNEL_MODULES_BLOCKLIST_FILE := $(KERNEL_PATH)/modules/vendor_dlkm/modules.blocklist
 
+# DIZI_SOURCE_DISPLAY=baseline|splashfix swaps in the source-built display driver
+# (dizi-kernel modules-source/, experimental) for the stock msm_drm.ko in both lists.
+ifneq ($(DIZI_SOURCE_DISPLAY),)
+DIZI_MSM_DRM := $(KERNEL_PATH)/modules-source/$(DIZI_SOURCE_DISPLAY)/msm_drm.ko
+BOARD_VENDOR_RAMDISK_KERNEL_MODULES := $(filter-out %/msm_drm.ko,$(BOARD_VENDOR_RAMDISK_KERNEL_MODULES)) $(DIZI_MSM_DRM)
+BOARD_VENDOR_KERNEL_MODULES := $(filter-out %/msm_drm.ko,$(BOARD_VENDOR_KERNEL_MODULES)) $(DIZI_MSM_DRM)
+endif
+
 # Partitions
 -include vendor/lineage/config/BoardConfigReservedSize.mk
 
