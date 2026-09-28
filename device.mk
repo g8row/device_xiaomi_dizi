@@ -377,9 +377,11 @@ PRODUCT_COPY_FILES += \
 $(call inherit-product, vendor/xiaomi/dizi/dizi-vendor.mk)
 
 
-# Bring-up: trust the bench host's adb key on debuggable builds
+# Bring-up: trust a bench host's adb key on debuggable builds (DIZI_ADB_KEYS=<adb_keys file>)
 ifneq ($(TARGET_BUILD_VARIANT),user)
-PRODUCT_ADB_KEYS := $(LOCAL_PATH)/configs/bringup_adb_keys
+ifneq ($(DIZI_ADB_KEYS),)
+PRODUCT_ADB_KEYS := $(DIZI_ADB_KEYS)
+endif
 endif
 
 # Bring-up: EvoX init forces ro.debuggable=0 / ro.adb.secure=1 for Play
