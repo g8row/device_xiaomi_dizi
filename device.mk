@@ -145,6 +145,9 @@ PRODUCT_COPY_FILES += \
     hardware/qcom-caf/sm8450/display/config/snapdragon_color_libs_config.xml:$(TARGET_COPY_OUT_VENDOR)/etc/snapdragon_color_libs_config.xml
 
 # Dolby
+# Before the inherit: the first PRODUCT_COPY_FILES entry for a destination wins.
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/dolby/vendor.dolbyvision.media.c2@1.0-service.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/vendor.dolbyvision.media.c2@1.0-service.rc
 $(call inherit-product, hardware/dolby/dolby.mk)
 
 # DRM
