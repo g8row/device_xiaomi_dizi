@@ -40,7 +40,7 @@ The switches are in `BoardConfig.mk`:
 ## Build switches
 
 - `DIZI_SELINUX_PERMISSIVE=true`: permissive, on debuggable builds only. The default is enforcing.
-- `DIZI_ADB_KEYS=<adb_keys>`: debuggable builds trust this adb key file.
+- `DIZI_ADB_KEYS=<adb_keys>`: debuggable builds trust this adb key file (a path relative to the source root).
 - `WITH_ADB_INSECURE=true`: adb without authorization on debuggable builds.
 
 ## Firmware

@@ -377,7 +377,7 @@ PRODUCT_COPY_FILES += \
 $(call inherit-product, vendor/xiaomi/dizi/dizi-vendor.mk)
 
 
-# Bring-up: trust a bench host's adb key on debuggable builds (DIZI_ADB_KEYS=<adb_keys file>)
+# Bring-up: trust a bench host's adb key on debuggable builds (DIZI_ADB_KEYS=<adb_keys file, relative to the source root>)
 ifneq ($(TARGET_BUILD_VARIANT),user)
 ifneq ($(DIZI_ADB_KEYS),)
 PRODUCT_ADB_KEYS := $(DIZI_ADB_KEYS)
