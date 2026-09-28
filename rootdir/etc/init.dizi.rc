@@ -67,7 +67,8 @@ on boot
 on property:vendor.pen.state=*
     exec_background u:r:xiaomi_pen:s0 system system -- /vendor/bin/xiaomi-pen ${vendor.pen.state}
 
-# Bring-up: recover USB when the controller misses the attach at boot.
+# Recover USB (MTP, adb) when the controller misses the attach at boot; without it the
+# cable has to be replugged after every boot.
 service vendor.usb_attach /vendor/bin/init.dizi.usb_attach.sh
     class late_start
     user root
@@ -79,6 +80,10 @@ service vendor.usb_attach /vendor/bin/init.dizi.usb_attach.sh
 # Start as soon as adbd runs, not at boot_completed: a boot that hangs
 # earlier is exactly when USB adb is needed.
 on property:init.svc.adbd=running && property:ro.debuggable=1
+    start vendor.usb_attach
+
+# All builds: user builds don't start adbd at boot, but MTP needs the attach too.
+on property:sys.boot_completed=1
     start vendor.usb_attach
 
 # zram: lz4 instead of the kernel default lzo-rle. It decompresses several times
