@@ -401,6 +401,12 @@ PRODUCT_ADB_KEYS := $(DIZI_ADB_KEYS)
 endif
 endif
 
+# Bench: adb root without the developer option toggle (see the rc).
+ifdef WITH_ADB_INSECURE
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/rootdir/etc/dizi-bench-adbroot.rc:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/init/dizi-bench-adbroot.rc
+endif
+
 # Bring-up: EvoX init forces ro.debuggable=0 / ro.adb.secure=1 for Play
 # Integrity unless this is set (system/core/init LoadDebugProperties).
 ifdef WITH_ADB_INSECURE

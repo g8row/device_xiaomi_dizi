@@ -1,0 +1,5 @@
+# Bench builds only (WITH_ADB_INSECURE): turn on Lineage's "Root access" developer option for adb
+# before adb_root starts, so a freshly wiped bench tablet takes `adb root` without a screen tap.
+on post-fs-data && property:ro.debuggable=1
+    mkdir /data/adbroot 0700 root root
+    write /data/adbroot/enabled 1
