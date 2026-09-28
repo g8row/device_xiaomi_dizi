@@ -27,6 +27,7 @@ import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
 
+import org.lineageos.settings.display.RefreshRateKick;
 import org.lineageos.settings.thermal.ThermalUtils;
 
 public class BootCompletedReceiver extends BroadcastReceiver {
@@ -49,6 +50,8 @@ public class BootCompletedReceiver extends BroadcastReceiver {
     private void handleLockedBootCompleted(Context context) {
         if (DEBUG) Log.i(TAG, "Handling locked boot completed.");
         try {
+            // Make sure the panel really runs the active refresh rate.
+            RefreshRateKick.run(context);
             // Start necessary services
             startServices(context);
         } catch (Exception e) {
