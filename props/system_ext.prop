@@ -12,5 +12,12 @@ persist.bluetooth.leaudio.notify.idle.during.call=true
 persist.bluetooth.leaudio_offload.disabled=false
 ro.bluetooth.leaudio_offload.supported=true
 
+# Launcher
+# No wallpaper depth (zoom + blur) behind overview. The blur makes SurfaceFlinger
+# rotate, scale and blur the full-screen wallpaper every frame: recents was ~23%
+# janky in landscape (p50 25 ms) and ~3% without the blur (b29/b32). Stock HyperOS
+# has no blur there either.
+ro.launcher.depth.overview=false
+
 # Radio
 telephony.active_modems.max_count=2
