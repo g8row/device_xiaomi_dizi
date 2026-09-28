@@ -8,3 +8,8 @@ allow hal_power_default vendor_sysfs_msm_perf:file rw_file_perms;
 typeattribute hal_power_default mlstrustedsubject;
 allow hal_power_default self:capability sys_nice;
 allow hal_power_default { appdomain system_server surfaceflinger }:process { getsched setsched };
+
+# Double-tap to wake: the power HAL writes the gesture-mode event to the touchscreen's
+# input device (power/power-mode.cpp).
+allow hal_power_default input_device:dir r_dir_perms;
+allow hal_power_default input_device:chr_file rw_file_perms;

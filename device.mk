@@ -269,6 +269,7 @@ PRODUCT_PACKAGES += \
     dizi_no_flex_clock
 
 # Power
+$(call soong_config_set,power_libperfmgr,mode_extension_lib,//$(LOCAL_PATH)/power:libperfmgr-ext-dizi)
 PRODUCT_PACKAGES += \
     android.hardware.power-service.lineage-libperfmgr \
     libqti-perfd-client

@@ -734,4 +734,8 @@
     <bool name="config_isDesktopModeSupported">true</bool>
     <bool name="config_canInternalDisplayHostDesktops">true</bool>
     <bool name="config_isDesktopModeDevOptionSupported">true</bool>
+
+    <!-- Double-tap to wake: the power HAL (power/power-mode.cpp) switches the touch IC's
+         gesture mode. Shows "Tap to wake" in Settings > Display. -->
+    <bool name="config_supportDoubleTapWake">true</bool>
 </resources>
