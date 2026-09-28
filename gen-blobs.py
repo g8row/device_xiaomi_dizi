@@ -127,7 +127,13 @@ def source_built_names(src_tree: Path) -> set[str]:
 
 
 # '-ndk_platform' libraries are relinked to the source-built '-ndk' variant
-# by the lib_fixups in extract-files.py, so they count as built.
+# by the lib_fixups in extract-files.py, so they count as built when the
+# source tree has the AIDL interface. Otherwise (ruan's radio and gnss
+# interfaces) the blob itself is needed.
+def source_built_ndk_platform(lib: str, built: set[str]) -> bool:
+    m = re.fullmatch(r'(.+)-V\d+-ndk_platform\.so', lib)
+    return m is not None and m.group(1) in built
+
 
 def needed(path: Path) -> list[str]:
     res = subprocess.run(['readelf', '-dW', str(path)], capture_output=True, text=True)
@@ -224,7 +230,7 @@ def main() -> None:
         for lib in needed(dump / rel):
             hit = lib_index.get((lib, cls))
             if (hit is None or hit in listed or (lib, cls) in listed_libs
-                    or lib.endswith('-ndk_platform.so') or lib.removesuffix('.so') in built):
+                    or source_built_ndk_platform(lib, built) or lib.removesuffix('.so') in built):
                 continue
             listed.add(hit)
             listed_libs.add((lib, cls))
