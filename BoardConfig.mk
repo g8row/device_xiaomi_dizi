@@ -92,8 +92,9 @@ TARGET_KERNEL_CONFIG := \
     gki_defconfig \
     vendor/parrot_GKI.config
 TARGET_FORCE_PREBUILT_KERNEL := true
-# DIZI_SOURCE_KERNEL=true boots the source-built GKI Image (dizi-kernel README) with the same
-# stock dtb, dtbo and modules; the stock Image stays the default until it has soaked.
+# The source-built GKI Image (dizi-kernel README) is the default since b39; it boots the same
+# stock dtb, dtbo and modules. DIZI_SOURCE_KERNEL=false selects the stock Image.
+DIZI_SOURCE_KERNEL ?= true
 ifeq ($(DIZI_SOURCE_KERNEL),true)
 TARGET_PREBUILT_KERNEL := $(KERNEL_PATH)/Image-source
 else
@@ -136,8 +137,10 @@ BOARD_VENDOR_KERNEL_MODULES := $(wildcard $(KERNEL_PATH)/modules/vendor_dlkm/*.k
 BOARD_VENDOR_KERNEL_MODULES_LOAD := $(strip $(shell cat $(KERNEL_PATH)/modules/vendor_dlkm/modules.load))
 BOARD_VENDOR_KERNEL_MODULES_BLOCKLIST_FILE := $(KERNEL_PATH)/modules/vendor_dlkm/modules.blocklist
 
-# DIZI_SOURCE_DISPLAY=baseline|splashfix swaps in the source-built display driver
-# (dizi-kernel modules-source/, experimental) for the stock msm_drm.ko in both lists.
+# Source-built display driver (dizi-kernel modules-source/) instead of the stock msm_drm.ko,
+# in both lists. splashfix (default since b39) reprograms the timing the bootloader leaves at
+# 60 Hz (patches/0002). DIZI_SOURCE_DISPLAY=baseline for the plain source build, empty for stock.
+DIZI_SOURCE_DISPLAY ?= splashfix
 ifneq ($(DIZI_SOURCE_DISPLAY),)
 DIZI_MSM_DRM := $(KERNEL_PATH)/modules-source/$(DIZI_SOURCE_DISPLAY)/msm_drm.ko
 BOARD_VENDOR_RAMDISK_KERNEL_MODULES := $(filter-out %/msm_drm.ko,$(BOARD_VENDOR_RAMDISK_KERNEL_MODULES)) $(DIZI_MSM_DRM)
