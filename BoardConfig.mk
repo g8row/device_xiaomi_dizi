@@ -241,6 +241,7 @@ WIFI_HIDL_FEATURE_AWARE := true
 WIFI_HIDL_UNIFIED_SUPPLICANT_SERVICE_RC_ENTRY := true
 WPA_SUPPLICANT_VERSION := VER_0_8_X
 
-# Vendor
-include vendor/xiaomi/dizi/BoardConfigVendor.mk
+# Vendor (ruan sets DIZI_VENDOR := ruan for its own blobs)
+DIZI_VENDOR ?= dizi
+include vendor/xiaomi/$(DIZI_VENDOR)/BoardConfigVendor.mk
 

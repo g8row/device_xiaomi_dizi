@@ -368,14 +368,21 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.wifi.passpoint.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.passpoint.xml \
     frameworks/native/data/etc/android.hardware.wifi.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.xml
 
-# Tablet core features (app widgets, device admin, ...) and no telephony
+# Tablet core features (app widgets, device admin, ...)
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/tablet_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/tablet_core_hardware.xml \
-    $(LOCAL_PATH)/configs/permissions/dizi_excluded_telephony_features.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/dizi_excluded_telephony_features.xml \
     $(LOCAL_PATH)/configs/permissions/privapp-permissions-dizipen.xml:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/permissions/privapp-permissions-dizipen.xml
 
-# Vendor
-$(call inherit-product, vendor/xiaomi/dizi/dizi-vendor.mk)
+# No telephony on the Wi-Fi model. ruan (device/xiaomi/ruan, the 5G model)
+# inherits this file with DIZI_TELEPHONY := true.
+ifneq ($(DIZI_TELEPHONY),true)
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/permissions/dizi_excluded_telephony_features.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/dizi_excluded_telephony_features.xml
+endif
+
+# Vendor (ruan sets DIZI_VENDOR := ruan for its own blobs)
+DIZI_VENDOR ?= dizi
+$(call inherit-product, vendor/xiaomi/$(DIZI_VENDOR)/$(DIZI_VENDOR)-vendor.mk)
 
 
 # Bring-up: trust a bench host's adb key on debuggable builds (DIZI_ADB_KEYS=<adb_keys file, relative to the source root>)
