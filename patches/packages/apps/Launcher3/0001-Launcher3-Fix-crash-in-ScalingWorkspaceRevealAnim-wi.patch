@@ -1,0 +1,49 @@
+From 9149aaa1e4e326ee0afacbe6f72d0bf90a7972bf Mon Sep 17 00:00:00 2001
+From: Alexander Gurov <aliogu23@gmail.com>
+Date: Tue, 29 Sep 2026 01:57:40 +0300
+Subject: [PATCH] Launcher3: Fix crash in ScalingWorkspaceRevealAnim without
+ blur flags
+
+With both all_apps_blur and enable_overview_background_wallpaper_blur
+off, the legacy branch called getDimensionPixelSize() on
+R.integer.max_depth_blur_radius. That is an integer resource, so
+every swipe-to-home animation threw Resources$NotFoundException
+("type #0x10 is not valid") and crashed the launcher.
+
+Read the legacy value with getInteger(), as BaseDepthController and
+LauncherBackAnimationController already do.
+
+Claude-Session: https://claude.ai/code/session_01SSSukFRv1eDpxZvKvYtD7y
+Change-Id: I593f44166862ee0b113cd5afe04844dcb07bbed4
+---
+ .../quickstep/util/ScalingWorkspaceRevealAnim.kt    | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/quickstep/src/com/android/quickstep/util/ScalingWorkspaceRevealAnim.kt b/quickstep/src/com/android/quickstep/util/ScalingWorkspaceRevealAnim.kt
+index 7aec25f906..2f0ff7fd1b 100644
+--- a/quickstep/src/com/android/quickstep/util/ScalingWorkspaceRevealAnim.kt
++++ b/quickstep/src/com/android/quickstep/util/ScalingWorkspaceRevealAnim.kt
+@@ -185,14 +185,13 @@ class ScalingWorkspaceRevealAnim(
+             )
+ 
+             // Add a blur animation to the scrim layer.
++            // As in BaseDepthController: the legacy radius is an integer resource, not a dimen.
+             var maxBlurRadius =
+-                launcher.resources.getDimensionPixelSize(
+-                    if (Flags.allAppsBlur() || Flags.enableOverviewBackgroundWallpaperBlur()) {
+-                        R.dimen.max_depth_blur_radius_enhanced
+-                    } else {
+-                        R.integer.max_depth_blur_radius
+-                    }
+-                )
++                if (Flags.allAppsBlur() || Flags.enableOverviewBackgroundWallpaperBlur()) {
++                    launcher.resources.getDimensionPixelSize(R.dimen.max_depth_blur_radius_enhanced)
++                } else {
++                    launcher.resources.getInteger(R.integer.max_depth_blur_radius)
++                }
+             val blurAnimator = ValueAnimator.ofFloat(1f, 0f)
+             blurAnimator.setInterpolator(BLUR_INTERPOLATOR)
+             blurAnimator.addUpdateListener {
+-- 
+2.47.3
+

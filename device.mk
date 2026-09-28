@@ -260,6 +260,12 @@ PRODUCT_PACKAGES += \
     vendor_firmware_mnt_mountpoint \
     vendor_vm-system_mountpoint
 
+# Launcher3: no wallpaper/workspace blur behind all apps and overview. It puts every frame of those
+# animations on SF GPU composition (research/lineage.md). DIZI_LAUNCHER_BLUR=true keeps the upstream flags.
+ifneq ($(DIZI_LAUNCHER_BLUR),true)
+PRODUCT_RELEASE_CONFIG_MAPS += $(LOCAL_PATH)/release/release_config_map.textproto
+endif
+
 # Pen
 PRODUCT_PACKAGES += \
     DiziPen
