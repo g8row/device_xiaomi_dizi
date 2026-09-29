@@ -192,6 +192,10 @@ SYSTEM_EXT_PUBLIC_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/public
 # SurfaceFlinger
 TARGET_USE_AOSP_SURFACEFLINGER := true
 
+# HWUI renders apps with Vulkan (ro.hwui.use_vulkan, set in vendor build.prop from this).
+# Recents->app launcher janky 4.6-5.7% -> 3.9% on Android 17; app sweep clean.
+TARGET_USES_VULKAN := true
+
 # System properties
 TARGET_ODM_PROP += $(DEVICE_PATH)/props/odm.prop
 TARGET_PRODUCT_PROP += $(DEVICE_PATH)/props/product.prop
