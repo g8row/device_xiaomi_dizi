@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <!-- For res/xml/default_workspace_6x5.xml (an overlay can't link against the target's strings). -->
+    <string name="google_folder_title" translatable="false">Google</string>
+</resources>

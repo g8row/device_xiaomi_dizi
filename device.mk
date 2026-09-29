@@ -251,6 +251,7 @@ PRODUCT_PACKAGES += \
     SettingsOverlayDizi \
     SettingsProviderOverlayDizi \
     SystemUIOverlayDizi \
+    TrebuchetOverlayDizi \
     WifiOverlayDizi
 
 PRODUCT_PACKAGES += \
