@@ -21,3 +21,8 @@ ro.launcher.depth.overview=false
 
 # Radio
 telephony.active_modems.max_count=2
+
+# Notification shade blur off by default (XiaomiParts > Display > Blur effects turns it back on).
+# Android 17's shade blur is expensive on the Adreno 710: QS pull-down 13-16% janky (p90 32-34 ms)
+# with it, 3.7% (p90 14 ms) without (research/performance-report.md).
+persist.sysui.disableBlur=true
