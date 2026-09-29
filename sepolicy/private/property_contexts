@@ -9,4 +9,5 @@ ro.launcher.depth.overview          u:object_r:exported_default_prop:s0
 settingsdebug.instant.packages u:object_r:settingslib_prop:s0
 
 # XiaomiParts
+persist.sysui.disableBlur                    u:object_r:exported_system_prop:s0 exact bool
 sys.perf_mode_active                         u:object_r:exported_system_prop:s0
