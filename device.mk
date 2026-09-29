@@ -247,6 +247,7 @@ PRODUCT_PACKAGES += \
     FrameworkOverlayDizi \
     GameBarOverlayDizi \
     LauncherOverlayDizi \
+    LauncherNoBlurOverlayDizi \
     LineageSDKOverlayDizi \
     LineageSettingsOverlayDizi \
     LineageSystemUIOverlayDizi \

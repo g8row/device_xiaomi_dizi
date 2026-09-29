@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <!-- No launcher depth blur (app drawer, behind launching apps). The blurred launcher and
+         wallpaper go to SurfaceFlinger GPU composition on every frame of those animations. -->
+    <dimen name="max_depth_blur_radius_enhanced">0dp</dimen>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<!-- Not static: XiaomiParts (Display > Launcher effects) switches it on and off. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.google.android.apps.nexuslauncher.overlay.dizi.noblur">
+    <overlay android:targetPackage="com.google.android.apps.nexuslauncher"
+             android:priority="1001" />
+</manifest>
