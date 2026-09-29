@@ -113,9 +113,7 @@
 
     <!-- Launcher effects -->
     <string name="launcher_effects_title">Blur effects</string>
-    <string name="launcher_effects_summary">Launcher and notification shade blur</string>
-    <string name="launcher_blur_title">Launcher blur</string>
-    <string name="launcher_blur_summary">Blur the home screen behind the app drawer and opening apps. Off makes these animations smoother</string>
+    <string name="launcher_effects_summary">Notification shade blur</string>
     <string name="shade_blur_title">Notification shade blur</string>
     <string name="shade_blur_summary">Blur behind the notification shade and quick settings. Off makes pulling them down smoother</string>
 </resources>

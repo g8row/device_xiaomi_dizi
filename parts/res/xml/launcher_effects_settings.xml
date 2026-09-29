@@ -7,11 +7,6 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:title="@string/launcher_effects_title">
 
-    <SwitchPreferenceCompat
-        android:key="launcher_blur"
-        android:title="@string/launcher_blur_title"
-        android:summary="@string/launcher_blur_summary"
-        android:defaultValue="false" />
 
     <SwitchPreferenceCompat
         android:key="shade_blur"

@@ -28,7 +28,6 @@ import android.provider.Settings;
 import android.util.Log;
 
 import org.lineageos.settings.display.RefreshRateKick;
-import org.lineageos.settings.launcher.LauncherEffects;
 import org.lineageos.settings.thermal.ThermalUtils;
 
 public class BootCompletedReceiver extends BroadcastReceiver {
@@ -53,8 +52,6 @@ public class BootCompletedReceiver extends BroadcastReceiver {
         try {
             // Make sure the panel really runs the active refresh rate.
             RefreshRateKick.run(context);
-            // Launcher blur choice (the no-blur overlay is not static).
-            LauncherEffects.apply(context);
             // Start necessary services
             startServices(context);
         } catch (Exception e) {
