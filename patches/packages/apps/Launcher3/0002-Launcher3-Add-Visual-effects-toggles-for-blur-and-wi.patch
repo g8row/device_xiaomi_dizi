@@ -1,0 +1,995 @@
+From e0f26c6c14732d1a5089338a6cd0fb82e06178fa Mon Sep 17 00:00:00 2001
+From: Alexander Gurov <aliogu23@gmail.com>
+Date: Tue, 29 Sep 2026 04:27:44 +0300
+Subject: [PATCH 2/2] Launcher3: Add Visual effects toggles for blur and window
+ corners
+
+Blur behind the app drawer and recents, and the legacy blur behind
+apps, cost noticeable frame time on high-refresh panels. On dizi
+(Adreno 710, 2560x1600@120) an app drawer fling is 6.64% janky (p90
+18 ms) with drawer blur versus 2.25-2.30% (p90 7 ms) without, and
+icon to app launch drops from 3.2-3.5% to 0.66% janky with the behind
+apps blur off. The upstream flags are READ_ONLY aconfig flags, so they
+cannot be changed at runtime.
+
+Add VisualEffects, which reads the user's choices once per process
+from the launcher shared preferences. allAppsBlur() and
+enableOverviewBackgroundWallpaperBlur() return the flag value and the
+user choice, so turning a toggle off takes the flag-off code path, and
+every call site is routed through it. BaseDepthController gates depth
+blur per state: app drawer, overview, and everything else, which is
+treated as behind apps. The scaling workspace reveal and the back
+animation honour the behind apps toggle. WindowCorners wraps the
+QuickStepContract corner radius for window animations so rounded
+corners can be disabled too; measurements show no gain from that, so
+it stays on by default.
+
+Add a Settings > Visual effects screen with four switches: blur
+behind app drawer, blur behind recents and blur while opening apps
+(all default off), and rounded corners in animations (default on).
+The values are cached per process, so SettingsActivity restarts the
+launcher when leaving settings after a change.
+
+Claude-Session: https://claude.ai/code/session_01SSSukFRv1eDpxZvKvYtD7y
+Change-Id: I0d25f2bc0b997440be5f0de57724b83b64821428
+---
+ .../launcher3/QuickstepTransitionManager.java | 10 +-
+ .../appprediction/AppsDividerView.java        |  3 +-
+ .../allapps/TaskbarAllAppsSlideInView.java    |  5 +-
+ .../overlay/TaskbarOverlayContext.java        |  5 +-
+ .../overlay/TaskbarOverlayController.java     |  3 +-
+ .../uioverrides/QuickstepLauncher.java        |  7 +-
+ .../uioverrides/states/AllAppsState.java      |  5 +-
+ .../PortraitStatesTouchController.java        |  3 +-
+ .../android/quickstep/FullscreenDrawParams.kt |  3 +-
+ .../LauncherBackAnimationController.java      | 14 ++-
+ .../quickstep/util/BaseDepthController.java   | 28 +++++-
+ .../util/ScalingWorkspaceRevealAnim.kt        |  5 +-
+ .../util/SplitSelectStateController.java      |  2 +-
+ .../quickstep/util/TaskCornerRadius.java      |  6 +-
+ .../android/quickstep/util/WindowCorners.java | 34 +++++++
+ .../com/android/quickstep/views/BlurUtils.kt  |  2 +-
+ .../views/FloatingAppPairBackground.kt        |  7 +-
+ .../views/FloatingDesktopTaskView.kt          |  3 +-
+ .../quickstep/views/FloatingTaskView.java     |  3 +-
+ .../android/quickstep/views/RecentsView.java  |  3 +-
+ res/values/lineage_strings.xml                | 12 +++
+ res/xml/launcher_preferences.xml              | 36 +++++++
+ src/com/android/launcher3/Launcher.java       |  3 +-
+ .../allapps/ActivityAllAppsContainerView.java |  9 +-
+ .../launcher3/settings/SettingsActivity.java  | 23 +++++
+ .../touch/AllAppsSwipeController.java         |  5 +-
+ .../android/launcher3/util/VisualEffects.java | 97 +++++++++++++++++++
+ .../launcher3/views/ActivityContext.java      |  3 +-
+ 28 files changed, 295 insertions(+), 44 deletions(-)
+ create mode 100644 quickstep/src/com/android/quickstep/util/WindowCorners.java
+ create mode 100644 src/com/android/launcher3/util/VisualEffects.java
+
+diff --git a/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java b/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
+index 072bdcf3d3..40d9b3bbad 100644
+--- a/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
++++ b/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
+@@ -16,6 +16,8 @@
+ 
+ package com.android.launcher3;
+ 
++import com.android.quickstep.util.WindowCorners;
++import com.android.launcher3.util.VisualEffects;
+ import static android.app.ActivityTaskManager.INVALID_TASK_ID;
+ import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
+ import static android.app.WindowConfiguration.ACTIVITY_TYPE_STANDARD;
+@@ -67,8 +69,8 @@ import static com.android.quickstep.TaskViewUtils.findTaskViewToLaunch;
+ import static com.android.quickstep.util.AnimUtils.clampToDuration;
+ import static com.android.quickstep.util.AnimUtils.completeRunnableListCallback;
+ import static com.android.quickstep.util.FloatingIconViewHelper.getFloatingIconView;
+-import static com.android.systemui.shared.system.QuickStepContract.getWindowCornerRadius;
+-import static com.android.systemui.shared.system.QuickStepContract.supportsRoundedCornersOnWindows;
++import static com.android.quickstep.util.WindowCorners.getWindowCornerRadius;
++import static com.android.quickstep.util.WindowCorners.supportsRoundedCornersOnWindows;
+ import static com.android.wm.shell.Flags.enableDynamicInsetsForAppLaunch;
+ 
+ import android.animation.Animator;
+@@ -1229,7 +1231,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+ 
+     /** Returns animator that controls depth/blur of the background during app/widget opening. */
+     private Animator getBackgroundAnimator() {
+-        if (Flags.allAppsBlur()) {
++        if (VisualEffects.allAppsBlur()) {
+             // Don't animate/blur the background for this launch, regardless of the launcher state.
+             // We have too many performance issues with the blur.
+             return new AnimatorSet();
+@@ -1987,7 +1989,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+ 
+             BackAnimState bankAnimState = createWallpaperOpenAnimations(
+                     appTargets, wallpaperTargets, nonAppTargets, resolveRectF,
+-                    QuickStepContract.getWindowCornerRadius(mLauncher),
++                    WindowCorners.getWindowCornerRadius(mLauncher),
+                     false /* fromPredictiveBack */);
+ 
+             TaskViewUtils.createSplitAuxiliarySurfacesAnimator(nonAppTargets, false, null);
+diff --git a/quickstep/src/com/android/launcher3/appprediction/AppsDividerView.java b/quickstep/src/com/android/launcher3/appprediction/AppsDividerView.java
+index b8cfdc1d5a..b7be9eec93 100644
+--- a/quickstep/src/com/android/launcher3/appprediction/AppsDividerView.java
++++ b/quickstep/src/com/android/launcher3/appprediction/AppsDividerView.java
+@@ -16,6 +16,7 @@
+ 
+ package com.android.launcher3.appprediction;
+ 
++import com.android.launcher3.util.VisualEffects;
+ import static com.android.launcher3.util.OnboardingPrefs.ALL_APPS_VISITED_COUNT;
+ 
+ import android.annotation.TargetApi;
+@@ -86,7 +87,7 @@ public class AppsDividerView extends View implements FloatingHeaderRow {
+                 getResources().getDimensionPixelSize(R.dimen.all_apps_divider_height)
+         };
+ 
+-        mStrokeColor = Flags.allAppsBlur()
++        mStrokeColor = VisualEffects.allAppsBlur()
+                 ? Themes.getAttrColor(context, R.attr.bottomSheetDragHandleColor)
+                 : context.getColor(R.color.materialColorOutlineVariant);
+         mAllAppsLabelTextColor = context.getColor(R.color.materialColorOnSurface);
+diff --git a/quickstep/src/com/android/launcher3/taskbar/allapps/TaskbarAllAppsSlideInView.java b/quickstep/src/com/android/launcher3/taskbar/allapps/TaskbarAllAppsSlideInView.java
+index 254ba5173b..178f0a6a62 100644
+--- a/quickstep/src/com/android/launcher3/taskbar/allapps/TaskbarAllAppsSlideInView.java
++++ b/quickstep/src/com/android/launcher3/taskbar/allapps/TaskbarAllAppsSlideInView.java
+@@ -15,6 +15,7 @@
+  */
+ package com.android.launcher3.taskbar.allapps;
+ 
++import com.android.launcher3.util.VisualEffects;
+ import static android.os.Trace.TRACE_TAG_APP;
+ 
+ import static com.android.app.animation.Interpolators.DECELERATED_EASE;
+@@ -153,7 +154,7 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
+             animation.setViewAlpha(mAppsView, 1 - mToTranslationShift, allAppsFadeInterpolator);
+         }
+ 
+-        if (Flags.allAppsBlur()) {
++        if (VisualEffects.allAppsBlur()) {
+             Interpolator blurInterpolator = isOpening ? LINEAR : DECELERATED_EASE;
+             animation.addOnFrameListener(a -> {
+                 float blurProgress =
+@@ -276,7 +277,7 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
+         if (!mActivityContext.getDeviceProfile().shouldShowAllAppsOnSheet()) {
+             // Always use an opaque scrim if there's no sheet.
+             return context.getResources().getColor(R.color.materialColorSurfaceDim);
+-        } else if (!Flags.allAppsBlur()) {
++        } else if (!VisualEffects.allAppsBlur()) {
+             // If there's a sheet but no blur, use the old scrim color.
+             return context.getResources().getColor(R.color.widgets_picker_scrim);
+         }
+diff --git a/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayContext.java b/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayContext.java
+index 567c81442a..dab9a06b3f 100644
+--- a/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayContext.java
++++ b/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayContext.java
+@@ -15,6 +15,7 @@
+  */
+ package com.android.launcher3.taskbar.overlay;
+ 
++import com.android.launcher3.util.VisualEffects;
+ import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+ 
+ import android.content.Context;
+@@ -144,13 +145,13 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
+ 
+     @Override
+     public boolean isAllAppsBackgroundBlurEnabled() {
+-        return Flags.allAppsBlur() && mOverlayController != null
++        return VisualEffects.allAppsBlur() && mOverlayController != null
+                 && mOverlayController.isBackgroundBlurEnabled();
+     }
+ 
+     /** Apply the blur or blur fallback style to the current theme. */
+     private void updateBlurStyle() {
+-        if (!Flags.allAppsBlur()) {
++        if (!VisualEffects.allAppsBlur()) {
+             return;
+         }
+         getTheme().applyStyle(getAllAppsBlurStyleResId(), true);
+diff --git a/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayController.java b/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayController.java
+index 5a8bf9620e..91fd329fb1 100644
+--- a/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayController.java
++++ b/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayController.java
+@@ -15,6 +15,7 @@
+  */
+ package com.android.launcher3.taskbar.overlay;
+ 
++import com.android.launcher3.util.VisualEffects;
+ import static android.os.Trace.TRACE_TAG_APP;
+ import static android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+ import static android.view.WindowManager.LayoutParams.PRIVATE_FLAG_CONSUME_IME_INSETS;
+@@ -249,7 +250,7 @@ public final class TaskbarOverlayController {
+      *               are unsupported on the device.
+      */
+     public void setBackgroundBlurRadius(int radius) {
+-        if (!Flags.allAppsBlur()) {
++        if (!VisualEffects.allAppsBlur()) {
+             return;
+         }
+         if (!BlurUtils.supportsBlursOnWindows()) {
+diff --git a/quickstep/src/com/android/launcher3/uioverrides/QuickstepLauncher.java b/quickstep/src/com/android/launcher3/uioverrides/QuickstepLauncher.java
+index 3b96a74f11..2c28d00b67 100644
+--- a/quickstep/src/com/android/launcher3/uioverrides/QuickstepLauncher.java
++++ b/quickstep/src/com/android/launcher3/uioverrides/QuickstepLauncher.java
+@@ -15,6 +15,7 @@
+  */
+ package com.android.launcher3.uioverrides;
+ 
++import com.android.launcher3.util.VisualEffects;
+ import static android.app.ActivityTaskManager.INVALID_TASK_ID;
+ import static android.os.Trace.TRACE_TAG_APP;
+ import static android.view.Display.DEFAULT_DISPLAY;
+@@ -24,7 +25,7 @@ import static android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED;
+ import static com.android.app.animation.Interpolators.EMPHASIZED;
+ import static com.android.internal.jank.Cuj.CUJ_LAUNCHER_LAUNCH_APP_PAIR_FROM_WORKSPACE;
+ import static com.android.launcher3.Flags.enableExpressiveDismissTaskMotion;
+-import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
++import static com.android.launcher3.util.VisualEffects.enableOverviewBackgroundWallpaperBlur;
+ import static com.android.launcher3.Flags.enableUnfoldStateAnimation;
+ import static com.android.launcher3.Flags.refactorTaskbarUiState;
+ import static com.android.launcher3.LauncherConstants.SavedInstanceKeys.PENDING_SPLIT_SELECT_INFO;
+@@ -502,7 +503,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
+     @Override
+     public boolean isAllAppsBackgroundBlurEnabled() {
+         return mDepthController != null && mDepthController.isCrossWindowBlursEnabled()
+-                && Flags.allAppsBlur();
++                && VisualEffects.allAppsBlur();
+     }
+ 
+     @Override
+@@ -517,7 +518,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
+             if (isOverviewBackgroundBlurEnabled() != mOverviewBlurEnabled) {
+                 mWallpaperThemeManager.recreateToUpdateTheme();
+             }
+-        } else if (Flags.allAppsBlur()) {
++        } else if (VisualEffects.allAppsBlur()) {
+             // For all apps, we only need to update the scrim, which draws the panel. But if the
+             // activity was recreated above, this is unnecessary.
+             getAppsView().invalidateHeader();
+diff --git a/quickstep/src/com/android/launcher3/uioverrides/states/AllAppsState.java b/quickstep/src/com/android/launcher3/uioverrides/states/AllAppsState.java
+index 649f5c7187..f96bc669ff 100644
+--- a/quickstep/src/com/android/launcher3/uioverrides/states/AllAppsState.java
++++ b/quickstep/src/com/android/launcher3/uioverrides/states/AllAppsState.java
+@@ -15,6 +15,7 @@
+  */
+ package com.android.launcher3.uioverrides.states;
+ 
++import com.android.launcher3.util.VisualEffects;
+ import static com.android.app.animation.Interpolators.DECELERATE_2;
+ import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_ALLAPPS;
+ 
+@@ -174,7 +175,7 @@ public class AllAppsState extends LauncherState {
+     }
+ 
+     private static boolean isWorkspaceVisible(DeviceProfile deviceProfile) {
+-        return deviceProfile.getDeviceProperties().isTablet() || (Flags.allAppsSheetForHandheld() && Flags.allAppsBlur());
++        return deviceProfile.getDeviceProperties().isTablet() || (Flags.allAppsSheetForHandheld() && VisualEffects.allAppsBlur());
+     }
+ 
+     @Override
+@@ -206,7 +207,7 @@ public class AllAppsState extends LauncherState {
+         if (!launcher.getDeviceProfile().shouldShowAllAppsOnSheet()) {
+             // Always use an opaque scrim if there's no sheet.
+             backgroundColor = launcher.getResources().getColor(R.color.materialColorSurfaceDim);
+-        } else if (!Flags.allAppsBlur()) {
++        } else if (!VisualEffects.allAppsBlur()) {
+             // If there's a sheet but no blur, use the old scrim color.
+             backgroundColor = launcher.getResources().getColor(R.color.widgets_picker_scrim);
+         } else {
+diff --git a/quickstep/src/com/android/launcher3/uioverrides/touchcontrollers/PortraitStatesTouchController.java b/quickstep/src/com/android/launcher3/uioverrides/touchcontrollers/PortraitStatesTouchController.java
+index 22055821fa..416675f8d9 100644
+--- a/quickstep/src/com/android/launcher3/uioverrides/touchcontrollers/PortraitStatesTouchController.java
++++ b/quickstep/src/com/android/launcher3/uioverrides/touchcontrollers/PortraitStatesTouchController.java
+@@ -15,6 +15,7 @@
+  */
+ package com.android.launcher3.uioverrides.touchcontrollers;
+ 
++import com.android.launcher3.util.VisualEffects;
+ import static com.android.launcher3.AbstractFloatingView.TYPE_TOUCH_CONTROLLER_NO_INTERCEPT;
+ import static com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType;
+ import static com.android.launcher3.LauncherState.ALL_APPS;
+@@ -218,7 +219,7 @@ public class PortraitStatesTouchController extends AbstractStateChangeTouchContr
+     @Override
+     protected void onReinitToState(LauncherState newToState) {
+         super.onReinitToState(newToState);
+-        if (Flags.allAppsBlur() && mLauncher.isAllAppsBackgroundBlurEnabled()
++        if (VisualEffects.allAppsBlur() && mLauncher.isAllAppsBackgroundBlurEnabled()
+                 && newToState == ALL_APPS) {
+             // About to start blurring during swipe to All Apps; prepare the renderer.
+             ((QuickstepLauncher) mLauncher).getDepthController().setEarlyWakeup(true);
+diff --git a/quickstep/src/com/android/quickstep/FullscreenDrawParams.kt b/quickstep/src/com/android/quickstep/FullscreenDrawParams.kt
+index 054719a580..4c39bfd05e 100644
+--- a/quickstep/src/com/android/quickstep/FullscreenDrawParams.kt
++++ b/quickstep/src/com/android/quickstep/FullscreenDrawParams.kt
+@@ -16,6 +16,7 @@
+ 
+ package com.android.quickstep
+ 
++import com.android.quickstep.util.WindowCorners
+ import android.content.Context
+ import com.android.launcher3.R
+ import com.android.launcher3.Utilities
+@@ -74,7 +75,7 @@ constructor(
+                     .toFloat()
+             } else {
+                 // The corner radius is fixed to match when Taskbar is persistent mode
+-                QuickStepContract.getWindowCornerRadius(context)
++                WindowCorners.getWindowCornerRadius(context)
+             }
+         }
+     }
+diff --git a/quickstep/src/com/android/quickstep/LauncherBackAnimationController.java b/quickstep/src/com/android/quickstep/LauncherBackAnimationController.java
+index 76b2ede6f5..14bda6f664 100644
+--- a/quickstep/src/com/android/quickstep/LauncherBackAnimationController.java
++++ b/quickstep/src/com/android/quickstep/LauncherBackAnimationController.java
+@@ -16,6 +16,8 @@
+ 
+ package com.android.quickstep;
+ 
++import com.android.quickstep.util.WindowCorners;
++import com.android.launcher3.util.VisualEffects;
+ import static android.util.MathUtils.lerp;
+ import static android.view.RemoteAnimationTarget.MODE_CLOSING;
+ import static android.view.RemoteAnimationTarget.MODE_OPENING;
+@@ -25,7 +27,7 @@ import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
+ import static com.android.launcher3.BaseActivity.INVISIBLE_ALL;
+ import static com.android.launcher3.BaseActivity.INVISIBLE_BY_PENDING_FLAGS;
+ import static com.android.launcher3.BaseActivity.PENDING_INVISIBLE_BY_WALLPAPER_ANIMATION;
+-import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
++import static com.android.launcher3.util.VisualEffects.enableOverviewBackgroundWallpaperBlur;
+ 
+ import android.animation.Animator;
+ import android.animation.AnimatorListenerAdapter;
+@@ -589,19 +591,23 @@ public class LauncherBackAnimationController {
+     }
+ 
+     private void loadResources() {
+-        mWindowScaleEndCornerRadius = QuickStepContract.supportsRoundedCornersOnWindows(
++        mWindowScaleEndCornerRadius = WindowCorners.supportsRoundedCornersOnWindows(
+                 mLauncher.getResources())
+                 ? mLauncher.getResources().getDimensionPixelSize(
+                 R.dimen.swipe_back_window_corner_radius)
+                 : 0;
+-        mWindowScaleStartCornerRadius = QuickStepContract.getWindowCornerRadius(mLauncher);
++        mWindowScaleStartCornerRadius = WindowCorners.getWindowCornerRadius(mLauncher);
+         mStatusBarHeight = SystemBarUtils.getStatusBarHeight(mLauncher);
+-        if (Flags.allAppsBlur() || enableOverviewBackgroundWallpaperBlur()) {
++        if (VisualEffects.allAppsBlur() || enableOverviewBackgroundWallpaperBlur()) {
+             mMaxBlurRadius = mLauncher.getResources().getDimensionPixelSize(
+                     R.dimen.max_depth_blur_radius_enhanced);
+         } else {
+             mMaxBlurRadius = mLauncher.getResources().getInteger(R.integer.max_depth_blur_radius);
+         }
++        // Back to home from an app: the "blur behind apps" toggle (Settings > Visual effects).
++        if (!VisualEffects.blurBehindAppsEnabled()) {
++            mMaxBlurRadius = 0;
++        }
+     }
+ 
+     /**
+diff --git a/quickstep/src/com/android/quickstep/util/BaseDepthController.java b/quickstep/src/com/android/quickstep/util/BaseDepthController.java
+index c9bca79ea1..2b55fc0959 100644
+--- a/quickstep/src/com/android/quickstep/util/BaseDepthController.java
++++ b/quickstep/src/com/android/quickstep/util/BaseDepthController.java
+@@ -15,9 +15,10 @@
+  */
+ package com.android.quickstep.util;
+ 
++import com.android.launcher3.util.VisualEffects;
+ import static android.os.Trace.TRACE_TAG_APP;
+ 
+-import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
++import static com.android.launcher3.util.VisualEffects.enableOverviewBackgroundWallpaperBlur;
+ 
+ import android.app.WallpaperManager;
+ import android.graphics.RenderEffect;
+@@ -129,7 +130,7 @@ public class BaseDepthController {
+ 
+     public BaseDepthController(QuickstepLauncher activity) {
+         mLauncher = activity;
+-        if (Flags.allAppsBlur() || enableOverviewBackgroundWallpaperBlur()) {
++        if (VisualEffects.allAppsBlur() || enableOverviewBackgroundWallpaperBlur()) {
+             mCrossWindowBlursEnabled =
+                     CrossWindowBlurListeners.getInstance().isCrossWindowBlurEnabled();
+             mMaxBlurRadius = activity.getResources().getDimensionPixelSize(
+@@ -229,8 +230,8 @@ public class BaseDepthController {
+                         : mBaseSurface;
+ 
+         int previousBlur = mCurrentBlur;
+-        int newBlur = mCrossWindowBlursEnabled && !hasOpaqueBg && !mPauseBlurs ? (int) (blurAmount
+-                * mMaxBlurRadius) : 0;
++        int newBlur = mCrossWindowBlursEnabled && !hasOpaqueBg && !mPauseBlurs
++                && isBlurAllowedForState() ? (int) (blurAmount * mMaxBlurRadius) : 0;
+         int delta = Math.abs(newBlur - previousBlur);
+         if (skipSimilarBlur && delta < Utilities.dpToPx(1) && newBlur != 0 && previousBlur != 0
+                 && blurAmount != 1f) {
+@@ -308,7 +309,7 @@ public class BaseDepthController {
+     /** @return {@code true} if the workspace should be blurred. */
+     @VisibleForTesting
+     public boolean blurWorkspaceDepthTargets() {
+-        if (!Flags.allAppsBlur()) {
++        if (!VisualEffects.allAppsBlur()) {
+             return false;
+         }
+         StateManager<LauncherState, Launcher> stateManager = mLauncher.getStateManager();
+@@ -331,6 +332,23 @@ public class BaseDepthController {
+         return shouldBlurWorkspace;
+     }
+ 
++    /**
++     * Whether the user allows blur for the state the launcher is in or animating to
++     * (Settings > Visual effects): the app drawer, overview, or anything else (behind apps).
++     */
++    private boolean isBlurAllowedForState() {
++        StateManager<LauncherState, Launcher> stateManager = mLauncher.getStateManager();
++        LauncherState state = stateManager.getTargetState() != null
++                ? stateManager.getTargetState() : stateManager.getState();
++        if (state == LauncherState.ALL_APPS) {
++            return VisualEffects.blurAllAppsEnabled();
++        }
++        if (state == LauncherState.OVERVIEW) {
++            return VisualEffects.blurOverviewEnabled();
++        }
++        return VisualEffects.blurBehindAppsEnabled();
++    }
++
+     private void setDepth(float depth) {
+         depth = Utilities.boundToRange(depth, 0, 1);
+         // Depth of the Launcher state we are in or transitioning to.
+diff --git a/quickstep/src/com/android/quickstep/util/ScalingWorkspaceRevealAnim.kt b/quickstep/src/com/android/quickstep/util/ScalingWorkspaceRevealAnim.kt
+index 2f0ff7fd1b..c96baa514b 100644
+--- a/quickstep/src/com/android/quickstep/util/ScalingWorkspaceRevealAnim.kt
++++ b/quickstep/src/com/android/quickstep/util/ScalingWorkspaceRevealAnim.kt
+@@ -16,6 +16,7 @@
+ 
+ package com.android.quickstep.util
+ 
++import com.android.launcher3.util.VisualEffects
+ import android.animation.Animator
+ import android.animation.AnimatorListenerAdapter
+ import android.animation.AnimatorSet
+@@ -187,11 +188,13 @@ class ScalingWorkspaceRevealAnim(
+             // Add a blur animation to the scrim layer.
+             // As in BaseDepthController: the legacy radius is an integer resource, not a dimen.
+             var maxBlurRadius =
+-                if (Flags.allAppsBlur() || Flags.enableOverviewBackgroundWallpaperBlur()) {
++                if (VisualEffects.allAppsBlur() || VisualEffects.enableOverviewBackgroundWallpaperBlur()) {
+                     launcher.resources.getDimensionPixelSize(R.dimen.max_depth_blur_radius_enhanced)
+                 } else {
+                     launcher.resources.getInteger(R.integer.max_depth_blur_radius)
+                 }
++            // Going home from an app: the "blur behind apps" toggle (Settings > Visual effects).
++            if (!VisualEffects.blurBehindAppsEnabled()) maxBlurRadius = 0
+             val blurAnimator = ValueAnimator.ofFloat(1f, 0f)
+             blurAnimator.setInterpolator(BLUR_INTERPOLATOR)
+             blurAnimator.addUpdateListener {
+diff --git a/quickstep/src/com/android/quickstep/util/SplitSelectStateController.java b/quickstep/src/com/android/quickstep/util/SplitSelectStateController.java
+index 683a99583f..ec2dbffd8c 100644
+--- a/quickstep/src/com/android/quickstep/util/SplitSelectStateController.java
++++ b/quickstep/src/com/android/quickstep/util/SplitSelectStateController.java
+@@ -757,7 +757,7 @@ public class SplitSelectStateController {
+                             finishAdapter.run();
+                             cleanup(true /*success*/);
+                         },
+-                        QuickStepContract.getWindowCornerRadius(mContainer.asContext()));
++                        WindowCorners.getWindowCornerRadius(mContainer.asContext()));
+             });
+         }
+ 
+diff --git a/quickstep/src/com/android/quickstep/util/TaskCornerRadius.java b/quickstep/src/com/android/quickstep/util/TaskCornerRadius.java
+index 6f9c99a431..985f97ac4e 100644
+--- a/quickstep/src/com/android/quickstep/util/TaskCornerRadius.java
++++ b/quickstep/src/com/android/quickstep/util/TaskCornerRadius.java
+@@ -15,18 +15,22 @@
+  */
+ package com.android.quickstep.util;
+ 
+-import static com.android.systemui.shared.system.QuickStepContract.supportsRoundedCornersOnWindows;
++import static com.android.quickstep.util.WindowCorners.supportsRoundedCornersOnWindows;
+ 
+ import android.content.Context;
+ import android.content.res.Resources;
+ 
+ import com.android.launcher3.R;
+ import com.android.launcher3.util.Themes;
++import com.android.launcher3.util.VisualEffects;
+ 
+ public class TaskCornerRadius {
+ 
+     public static float get(Context context) {
+         Resources resources = context.getResources();
++        if (!VisualEffects.windowCornersEnabled()) {
++            return 0;
++        }
+         if (!supportsRoundedCornersOnWindows(resources)) {
+             return resources.getDimension(R.dimen.task_corner_radius_small);
+         }
+diff --git a/quickstep/src/com/android/quickstep/util/WindowCorners.java b/quickstep/src/com/android/quickstep/util/WindowCorners.java
+new file mode 100644
+index 0000000000..1be5400835
+--- /dev/null
++++ b/quickstep/src/com/android/quickstep/util/WindowCorners.java
+@@ -0,0 +1,34 @@
++/*
++ * SPDX-FileCopyrightText: The LineageOS Project
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package com.android.quickstep.util;
++
++import android.content.Context;
++import android.content.res.Resources;
++
++import com.android.launcher3.util.VisualEffects;
++import com.android.systemui.shared.system.QuickStepContract;
++
++/**
++ * {@link QuickStepContract}'s window corner radius, for the launcher's window animations, honouring
++ * the "Rounded corners in animations" toggle. Any corner radius on an animating window surface
++ * makes SurfaceFlinger compose it (and everything below it) on the GPU.
++ */
++public final class WindowCorners {
++
++    private WindowCorners() { }
++
++    /** The window corner radius, or 0 when the user turned rounded corners in animations off. */
++    public static float getWindowCornerRadius(Context context) {
++        return VisualEffects.windowCornersEnabled()
++                ? QuickStepContract.getWindowCornerRadius(context) : 0;
++    }
++
++    /** Whether windows are rounded, and the user kept rounded corners in animations. */
++    public static boolean supportsRoundedCornersOnWindows(Resources resources) {
++        return VisualEffects.windowCornersEnabled()
++                && QuickStepContract.supportsRoundedCornersOnWindows(resources);
++    }
++}
+diff --git a/quickstep/src/com/android/quickstep/views/BlurUtils.kt b/quickstep/src/com/android/quickstep/views/BlurUtils.kt
+index 318a0437f3..e40cd5b0a8 100644
+--- a/quickstep/src/com/android/quickstep/views/BlurUtils.kt
++++ b/quickstep/src/com/android/quickstep/views/BlurUtils.kt
+@@ -16,7 +16,7 @@
+ 
+ package com.android.quickstep.views
+ 
+-import com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur
++import com.android.launcher3.util.VisualEffects.enableOverviewBackgroundWallpaperBlur
+ import com.android.quickstep.RemoteTargetGluer.RemoteTargetHandle
+ 
+ /** Applies blur either behind launcher surface or live tile app. */
+diff --git a/quickstep/src/com/android/quickstep/views/FloatingAppPairBackground.kt b/quickstep/src/com/android/quickstep/views/FloatingAppPairBackground.kt
+index 4361a33aa5..fc3ee83bf3 100644
+--- a/quickstep/src/com/android/quickstep/views/FloatingAppPairBackground.kt
++++ b/quickstep/src/com/android/quickstep/views/FloatingAppPairBackground.kt
+@@ -16,6 +16,7 @@
+ 
+ package com.android.quickstep.views
+ 
++import com.android.quickstep.util.WindowCorners
+ import android.content.Context
+ import android.graphics.Canvas
+ import android.graphics.ColorFilter
+@@ -110,7 +111,7 @@ open class FloatingAppPairBackground(
+ 
+         // Find device-specific measurements
+         val resources = context.resources
+-        deviceCornerRadius = QuickStepContract.getWindowCornerRadius(context)
++        deviceCornerRadius = WindowCorners.getWindowCornerRadius(context)
+         deviceHalfDividerSize =
+             resources.getDimensionPixelSize(R.dimen.multi_window_task_divider_size) / 2f
+         val dividerCenterPos = dividerPos + deviceHalfDividerSize
+@@ -359,9 +360,9 @@ open class FloatingAppPairBackground(
+             val scaleFactorX = floatingView.scaleX
+             val scaleFactorY = floatingView.scaleY
+             val cornerRadiusX =
+-                QuickStepContract.getWindowCornerRadius(container.asContext()) / scaleFactorX
++                WindowCorners.getWindowCornerRadius(container.asContext()) / scaleFactorX
+             val cornerRadiusY =
+-                QuickStepContract.getWindowCornerRadius(container.asContext()) / scaleFactorY
++                WindowCorners.getWindowCornerRadius(container.asContext()) / scaleFactorY
+             c.drawRoundRect(rect, cornerRadiusX, cornerRadiusY, backgroundPaint)
+         }
+     }
+diff --git a/quickstep/src/com/android/quickstep/views/FloatingDesktopTaskView.kt b/quickstep/src/com/android/quickstep/views/FloatingDesktopTaskView.kt
+index 24ce42445c..80e57afbc3 100644
+--- a/quickstep/src/com/android/quickstep/views/FloatingDesktopTaskView.kt
++++ b/quickstep/src/com/android/quickstep/views/FloatingDesktopTaskView.kt
+@@ -16,6 +16,7 @@
+ 
+ package com.android.quickstep.views
+ 
++import com.android.quickstep.util.WindowCorners
+ import android.animation.ValueAnimator
+ import android.content.Context
+ import android.graphics.Bitmap
+@@ -48,7 +49,7 @@ class FloatingDesktopTaskView(context: Context, attrs: AttributeSet?, defStyleAt
+     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
+ 
+     private val isRtl = Utilities.isRtl(resources)
+-    private val cornerRadius = QuickStepContract.getWindowCornerRadius(context)
++    private val cornerRadius = WindowCorners.getWindowCornerRadius(context)
+     private lateinit var thumbnailView: FloatingTaskThumbnailView
+     private lateinit var startBounds: RectF
+ 
+diff --git a/quickstep/src/com/android/quickstep/views/FloatingTaskView.java b/quickstep/src/com/android/quickstep/views/FloatingTaskView.java
+index 80994c4714..0948a3d810 100644
+--- a/quickstep/src/com/android/quickstep/views/FloatingTaskView.java
++++ b/quickstep/src/com/android/quickstep/views/FloatingTaskView.java
+@@ -15,6 +15,7 @@
+  */
+ package com.android.quickstep.views;
+ 
++import com.android.quickstep.util.WindowCorners;
+ import static com.android.app.animation.Interpolators.LINEAR;
+ import static com.android.app.animation.Interpolators.clampToProgress;
+ import static com.android.launcher3.AbstractFloatingView.TYPE_TASK_MENU;
+@@ -456,7 +457,7 @@ public class FloatingTaskView extends FrameLayout {
+ 
+         public FullscreenDrawParams(Context context) {
+             mCornerRadius = TaskCornerRadius.get(context);
+-            mWindowCornerRadius = QuickStepContract.getWindowCornerRadius(context);
++            mWindowCornerRadius = WindowCorners.getWindowCornerRadius(context);
+ 
+             mCurrentDrawnCornerRadius = mCornerRadius;
+         }
+diff --git a/quickstep/src/com/android/quickstep/views/RecentsView.java b/quickstep/src/com/android/quickstep/views/RecentsView.java
+index 111c99b53a..d07b6bf11c 100644
+--- a/quickstep/src/com/android/quickstep/views/RecentsView.java
++++ b/quickstep/src/com/android/quickstep/views/RecentsView.java
+@@ -16,6 +16,7 @@
+ 
+ package com.android.quickstep.views;
+ 
++import com.android.launcher3.util.VisualEffects;
+ import static android.app.ActivityTaskManager.INVALID_TASK_ID;
+ import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN;
+ import static android.os.Trace.traceBegin;
+@@ -37,7 +38,7 @@ import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
+ import static com.android.launcher3.BaseActivity.STATE_HANDLER_INVISIBILITY_FLAGS;
+ import static com.android.launcher3.Flags.enableDesktopExplodedView;
+ import static com.android.launcher3.Flags.enableExpressiveDismissTaskMotion;
+-import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
++import static com.android.launcher3.util.VisualEffects.enableOverviewBackgroundWallpaperBlur;
+ import static com.android.launcher3.Flags.enableOverviewDesktopTileWallpaperBackground;
+ import static com.android.launcher3.Flags.enablePreventOverviewMouseDrag;
+ import static com.android.launcher3.Flags.enableRefactorTaskThumbnail;
+diff --git a/res/values/lineage_strings.xml b/res/values/lineage_strings.xml
+index c6f8f2e70f..427dd84398 100644
+--- a/res/values/lineage_strings.xml
++++ b/res/values/lineage_strings.xml
+@@ -73,4 +73,16 @@
+     <string name="tapered_rect_shape_title">Tapered rect</string>
+     <string name="teardrop_shape_title">Teardrop</string>
+     <string name="rounded_rect_shape_title">Rounded rect</string>
++
++    <!-- Visual effects -->
++    <string name="pref_visual_effects_title">Visual effects</string>
++    <string name="pref_visual_effects_summary">Blur and rounded corners in animations. Turning them off makes animations smoother</string>
++    <string name="pref_blur_all_apps_title">Blur behind app drawer</string>
++    <string name="pref_blur_all_apps_summary">Blur the home screen and wallpaper while the app drawer is open</string>
++    <string name="pref_blur_overview_title">Blur behind recents</string>
++    <string name="pref_blur_overview_summary">Blur the wallpaper behind the recent apps</string>
++    <string name="pref_blur_behind_apps_title">Blur while opening apps</string>
++    <string name="pref_blur_behind_apps_summary">Blur the home screen as apps open and close</string>
++    <string name="pref_window_corners_title">Rounded corners in animations</string>
++    <string name="pref_window_corners_summary">Keep app windows rounded while they open, close and move to recents</string>
+ </resources>
+diff --git a/res/xml/launcher_preferences.xml b/res/xml/launcher_preferences.xml
+index c5a1420c39..463d1a841c 100644
+--- a/res/xml/launcher_preferences.xml
++++ b/res/xml/launcher_preferences.xml
+@@ -110,4 +110,40 @@
+         android:defaultValue="true"
+         android:persistent="true" />
+ 
++    <androidx.preference.PreferenceScreen
++        android:key="pref_visual_effects"
++        android:title="@string/pref_visual_effects_title"
++        android:summary="@string/pref_visual_effects_summary"
++        android:persistent="false">
++
++        <SwitchPreferenceCompat
++            android:key="pref_blur_all_apps"
++            android:title="@string/pref_blur_all_apps_title"
++            android:summary="@string/pref_blur_all_apps_summary"
++            android:defaultValue="false"
++            android:persistent="true" />
++
++        <SwitchPreferenceCompat
++            android:key="pref_blur_overview"
++            android:title="@string/pref_blur_overview_title"
++            android:summary="@string/pref_blur_overview_summary"
++            android:defaultValue="false"
++            android:persistent="true" />
++
++        <SwitchPreferenceCompat
++            android:key="pref_blur_behind_apps"
++            android:title="@string/pref_blur_behind_apps_title"
++            android:summary="@string/pref_blur_behind_apps_summary"
++            android:defaultValue="false"
++            android:persistent="true" />
++
++        <SwitchPreferenceCompat
++            android:key="pref_window_corners"
++            android:title="@string/pref_window_corners_title"
++            android:summary="@string/pref_window_corners_summary"
++            android:defaultValue="true"
++            android:persistent="true" />
++
++    </androidx.preference.PreferenceScreen>
++
+ </androidx.preference.PreferenceScreen>
+diff --git a/src/com/android/launcher3/Launcher.java b/src/com/android/launcher3/Launcher.java
+index 66b4d70ed2..0d4f3a3554 100644
+--- a/src/com/android/launcher3/Launcher.java
++++ b/src/com/android/launcher3/Launcher.java
+@@ -16,6 +16,7 @@
+ 
+ package com.android.launcher3;
+ 
++import com.android.launcher3.util.VisualEffects;
+ import static android.content.pm.ActivityInfo.CONFIG_UI_MODE;
+ import static android.view.WindowInsetsAnimation.Callback.DISPATCH_MODE_CONTINUE_ON_SUBTREE;
+ import static android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
+@@ -26,7 +27,7 @@ import static com.android.launcher3.AbstractFloatingView.TYPE_ICON_SURFACE;
+ import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
+ import static com.android.launcher3.AbstractFloatingView.TYPE_WIDGETS_FULL_SHEET;
+ import static com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType;
+-import static com.android.launcher3.Flags.allAppsBlur;
++import static com.android.launcher3.util.VisualEffects.allAppsBlur;
+ import static com.android.launcher3.Flags.refactorTaskbarUiState;
+ import static com.android.launcher3.LauncherAnimUtils.HOTSEAT_SCALE_PROPERTY_FACTORY;
+ import static com.android.launcher3.LauncherAnimUtils.SCALE_INDEX_WIDGET_TRANSITION;
+diff --git a/src/com/android/launcher3/allapps/ActivityAllAppsContainerView.java b/src/com/android/launcher3/allapps/ActivityAllAppsContainerView.java
+index 9cdbf45125..301e7c03ed 100644
+--- a/src/com/android/launcher3/allapps/ActivityAllAppsContainerView.java
++++ b/src/com/android/launcher3/allapps/ActivityAllAppsContainerView.java
+@@ -15,6 +15,7 @@
+  */
+ package com.android.launcher3.allapps;
+ 
++import com.android.launcher3.util.VisualEffects;
+ import static com.android.launcher3.Flags.clearScrimOnReset;
+ import static com.android.launcher3.Flags.enableExpandingPauseWorkButton;
+ import static com.android.launcher3.allapps.ActivityAllAppsContainerView.AdapterHolder.MAIN;
+@@ -313,7 +314,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
+                 0 // Bottom left
+         };
+ 
+-        if (Flags.allAppsBlur()) {
++        if (VisualEffects.allAppsBlur()) {
+             int layerFg = getContext().getColor(R.color.blur_shade_panel_fg);
+             int layerBg = getContext().getColor(R.color.blur_shade_panel_bg);
+             mBottomSheetBackgroundColorOverBlur = ColorUtils.compositeColors(layerFg, layerBg);
+@@ -847,7 +848,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
+     }
+ 
+     int getBottomSheetBackgroundColor() {
+-        if (!Flags.allAppsBlur()) {
++        if (!VisualEffects.allAppsBlur()) {
+             return mBottomSheetBackgroundColorLegacy;
+         }
+         if (!mActivityContext.isAllAppsBackgroundBlurEnabled()) {
+@@ -858,7 +859,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
+     }
+ 
+     boolean isBackgroundBlurEnabled() {
+-        return Flags.allAppsBlur() && mActivityContext.isAllAppsBackgroundBlurEnabled();
++        return VisualEffects.allAppsBlur() && mActivityContext.isAllAppsBackgroundBlurEnabled();
+     }
+ 
+     /**
+@@ -1496,7 +1497,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
+ 
+             // When the background panel is blurred (or fallback), we don't add header protection.
+             // TODO (b/414671116): Apply header protection whenever search bar is focused.
+-            if (Flags.allAppsBlur()) {
++            if (VisualEffects.allAppsBlur()) {
+                 return;
+             }
+         }
+diff --git a/src/com/android/launcher3/settings/SettingsActivity.java b/src/com/android/launcher3/settings/SettingsActivity.java
+index c3e408d26c..caa952dac6 100644
+--- a/src/com/android/launcher3/settings/SettingsActivity.java
++++ b/src/com/android/launcher3/settings/SettingsActivity.java
+@@ -65,6 +65,7 @@ import com.android.launcher3.lineage.trust.TrustAppsActivity;
+ import com.android.launcher3.states.RotationHelper;
+ import com.android.launcher3.util.DisplayController;
+ import com.android.launcher3.util.SettingsCache;
++import com.android.launcher3.util.VisualEffects;
+ import com.android.settingslib.widget.SettingsBasePreferenceFragment;
+ import com.android.settingslib.widget.SettingsThemeHelper;
+ 
+@@ -74,6 +75,18 @@ import com.android.settingslib.widget.SettingsThemeHelper;
+ public class SettingsActivity extends FragmentActivity
+         implements OnPreferenceStartFragmentCallback, OnPreferenceStartScreenCallback {
+ 
++    /** A {@link VisualEffects} toggle changed; they are read once per launcher process. */
++    private static boolean sVisualEffectsChanged;
++
++    @Override
++    protected void onDestroy() {
++        super.onDestroy();
++        if (isFinishing() && sVisualEffectsChanged) {
++            sVisualEffectsChanged = false;
++            android.os.Process.killProcess(android.os.Process.myPid());
++        }
++    }
++
+     @VisibleForTesting
+     static final String DEVELOPER_OPTIONS_KEY = "pref_developer_options";
+ 
+@@ -376,6 +389,16 @@ public class SettingsActivity extends FragmentActivity
+                 case KEY_SUGGESTIONS:
+                     return launcherApps != null &&
+                             launcherApps.isPackageEnabled(SUGGESTIONS_PACKAGE, myUserHandle());
++                case VisualEffects.KEY_BLUR_ALL_APPS:
++                case VisualEffects.KEY_BLUR_OVERVIEW:
++                case VisualEffects.KEY_BLUR_BEHIND_APPS:
++                case VisualEffects.KEY_WINDOW_CORNERS:
++                    // Read once per process: restart the launcher when leaving settings.
++                    preference.setOnPreferenceChangeListener((pref, newValue) -> {
++                        sVisualEffectsChanged = true;
++                        return true;
++                    });
++                    return true;
+             }
+             return true;
+         }
+diff --git a/src/com/android/launcher3/touch/AllAppsSwipeController.java b/src/com/android/launcher3/touch/AllAppsSwipeController.java
+index 24beb7c7c3..1da7e90e6a 100644
+--- a/src/com/android/launcher3/touch/AllAppsSwipeController.java
++++ b/src/com/android/launcher3/touch/AllAppsSwipeController.java
+@@ -15,6 +15,7 @@
+  */
+ package com.android.launcher3.touch;
+ 
++import com.android.launcher3.util.VisualEffects;
+ import static com.android.app.animation.Interpolators.ACCELERATE;
+ import static com.android.app.animation.Interpolators.DECELERATED_EASE;
+ import static com.android.app.animation.Interpolators.EMPHASIZED;
+@@ -215,7 +216,7 @@ public class AllAppsSwipeController extends AbstractStateChangeTouchController {
+                     Interpolators.reverse(ALL_APPS_SHEET_DEPTH));
+             config.setInterpolator(ANIM_HOTSEAT_SCALE, Interpolators.reverse(ALL_APPS_SHEET_DEPTH));
+             config.setInterpolator(ANIM_DEPTH, Interpolators.reverse(ALL_APPS_SHEET_DEPTH));
+-            if (!Flags.allAppsBlur()
++            if (!VisualEffects.allAppsBlur()
+                     && launcher.getDeviceProfile().getDeviceProperties().isPhone()) {
+                 // On phones without blur, reveal the workspace and hotseat when leaving All Apps.
+                 config.setInterpolator(ANIM_WORKSPACE_FADE, INSTANT);
+@@ -264,7 +265,7 @@ public class AllAppsSwipeController extends AbstractStateChangeTouchController {
+             config.setInterpolator(ANIM_WORKSPACE_SCALE, ALL_APPS_SHEET_DEPTH);
+             config.setInterpolator(ANIM_HOTSEAT_SCALE, ALL_APPS_SHEET_DEPTH);
+             config.setInterpolator(ANIM_DEPTH, ALL_APPS_SHEET_DEPTH);
+-            if (!Flags.allAppsBlur()
++            if (!VisualEffects.allAppsBlur()
+                     && launcher.getDeviceProfile().getDeviceProperties().isPhone()) {
+                 // On phones without blur, hide the workspace and hotseat when entering All Apps.
+                 config.setInterpolator(ANIM_WORKSPACE_FADE, FINAL_FRAME);
+diff --git a/src/com/android/launcher3/util/VisualEffects.java b/src/com/android/launcher3/util/VisualEffects.java
+new file mode 100644
+index 0000000000..956f49651f
+--- /dev/null
++++ b/src/com/android/launcher3/util/VisualEffects.java
+@@ -0,0 +1,97 @@
++/*
++ * SPDX-FileCopyrightText: The LineageOS Project
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package com.android.launcher3.util;
++
++import android.app.ActivityThread;
++import android.content.Context;
++import android.content.SharedPreferences;
++
++import com.android.launcher3.Flags;
++import com.android.launcher3.LauncherFiles;
++
++/**
++ * User toggles for the launcher's expensive visual effects (Settings > Visual effects). Blur and
++ * rounded window corners in transitions force SurfaceFlinger to compose those layers on the GPU,
++ * which is where most of the transition jank on mid-range GPUs comes from.
++ *
++ * The blur getters stand in for the aconfig flags of the same name: they return the flag value
++ * AND the user's choice, so with a toggle off the launcher takes the flag-off code path. Values are
++ * read once per process; {@link #KEYS} changes restart the launcher (see SettingsActivity).
++ */
++public final class VisualEffects {
++
++    public static final String KEY_BLUR_ALL_APPS = "pref_blur_all_apps";
++    public static final String KEY_BLUR_OVERVIEW = "pref_blur_overview";
++    public static final String KEY_BLUR_BEHIND_APPS = "pref_blur_behind_apps";
++    public static final String KEY_WINDOW_CORNERS = "pref_window_corners";
++    public static final String[] KEYS = {
++            KEY_BLUR_ALL_APPS, KEY_BLUR_OVERVIEW, KEY_BLUR_BEHIND_APPS, KEY_WINDOW_CORNERS };
++
++    private static volatile boolean sLoaded;
++    private static boolean sBlurAllApps;
++    private static boolean sBlurOverview;
++    private static boolean sBlurBehindApps;
++    private static boolean sWindowCorners = true;
++
++    private VisualEffects() { }
++
++    private static void load() {
++        if (sLoaded) {
++            return;
++        }
++        synchronized (VisualEffects.class) {
++            if (sLoaded) {
++                return;
++            }
++            Context context = ActivityThread.currentApplication();
++            if (context != null) {
++                SharedPreferences prefs = context.getSharedPreferences(
++                        LauncherFiles.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);
++                sBlurAllApps = prefs.getBoolean(KEY_BLUR_ALL_APPS, false);
++                sBlurOverview = prefs.getBoolean(KEY_BLUR_OVERVIEW, false);
++                sBlurBehindApps = prefs.getBoolean(KEY_BLUR_BEHIND_APPS, false);
++                sWindowCorners = prefs.getBoolean(KEY_WINDOW_CORNERS, true);
++                sLoaded = true;
++            }
++        }
++    }
++
++    /** {@link Flags#allAppsBlur()} when the user enabled the app drawer blur. */
++    public static boolean allAppsBlur() {
++        load();
++        return Flags.allAppsBlur() && sBlurAllApps;
++    }
++
++    /** {@link Flags#enableOverviewBackgroundWallpaperBlur()} when the user enabled it. */
++    public static boolean enableOverviewBackgroundWallpaperBlur() {
++        load();
++        return Flags.enableOverviewBackgroundWallpaperBlur() && sBlurOverview;
++    }
++
++    /** Whether the app drawer may be blurred at all (enhanced or legacy depth blur). */
++    public static boolean blurAllAppsEnabled() {
++        load();
++        return sBlurAllApps;
++    }
++
++    /** Whether overview may be blurred at all. */
++    public static boolean blurOverviewEnabled() {
++        load();
++        return sBlurOverview;
++    }
++
++    /** Whether the launcher may blur behind apps (launching, closing, widgets, other states). */
++    public static boolean blurBehindAppsEnabled() {
++        load();
++        return sBlurBehindApps;
++    }
++
++    /** Whether windows keep their rounded corners while the launcher animates them. */
++    public static boolean windowCornersEnabled() {
++        load();
++        return sWindowCorners;
++    }
++}
+diff --git a/src/com/android/launcher3/views/ActivityContext.java b/src/com/android/launcher3/views/ActivityContext.java
+index f8cba752b8..a4c0dbd23c 100644
+--- a/src/com/android/launcher3/views/ActivityContext.java
++++ b/src/com/android/launcher3/views/ActivityContext.java
+@@ -15,6 +15,7 @@
+  */
+ package com.android.launcher3.views;
+ 
++import com.android.launcher3.util.VisualEffects;
+ import static android.window.SplashScreen.SPLASH_SCREEN_STYLE_SOLID_COLOR;
+ 
+ import static com.android.launcher3.BuildConfig.WIDGETS_ENABLED;
+@@ -231,7 +232,7 @@ public interface ActivityContext extends SavedStateRegistryOwner {
+ 
+     /** @return the resource id of the style to apply for the current blur state in All Apps. */
+     default int getAllAppsBlurStyleResId() {
+-        if (!Flags.allAppsBlur()) {
++        if (!VisualEffects.allAppsBlur()) {
+             // Don't alter the colors provided in the default Launcher themes.
+             return View.NO_ID;
+         }
+-- 
+2.47.3
+
